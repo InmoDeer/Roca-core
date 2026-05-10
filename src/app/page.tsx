@@ -1,37 +1,69 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { supabase } from '../lib/supabase'
+import { STAGES_LEAD, STAGES_PROPIETARIO, STAGE_LABEL } from '../lib/crm/stages'
+import AuthGate from '../components/AuthGate'
+import { getFecha, estaHoy, estaVencido } from '../lib/crm/dates'
+import { getMensaje, getTipoMensaje } from '../lib/crm/messages'
+import { getScore, getCalor } from '../lib/crm/scoring'
+import type { Opportunity } from '../lib/crm/types'
+
+// ─── TIPOS ────────────────────────────────────────────────────────────────────
+
+type PipelineType = 'lead' | 'propietario'
+type Vista = 'hoy' | 'leads' | 'propietarios'
+
+// ─── UTILIDADES ───────────────────────────────────────────────────────────────
+
+// ─── COMPONENTE PRINCIPAL ─────────────────────────────────────────────────────
 
 export default function Home() {
-  const [leads, setLeads] = useState<any[]>([])
+  return (
+    <AuthGate>
+      {(user) => <CRMApp userId={user.id} />}
+    </AuthGate>
+  )
+}
+
+function CRMApp({ userId }: { userId: string }) {
+  const [opps, setOpps] = useState<any[]>([])
   const [properties, setProperties] = useState<any[]>([])
+  const [vista, setVista] = useState<Vista>('hoy')
+
+  const userIdRef = useRef(userId)
+  useEffect(() => { userIdRef.current = userId }, [userId])
+
+  // Form crear
   const [nombre, setNombre] = useState('')
   const [telefono, setTelefono] = useState('')
   const [propertyId, setPropertyId] = useState('')
-  const [leadActivo, setLeadActivo] = useState<any>(null)
+  const [pipelineNuevo, setPipelineNuevo] = useState<PipelineType>('lead')
+  const [stageInicial, setStageInicial] = useState('Nuevo')
+  const [mostrarForm, setMostrarForm] = useState(false)
+
+  // Programador de acción
+  const [oppActiva, setOppActiva] = useState<any>(null)
   const [eventoActivo, setEventoActivo] = useState('')
   const [fechaSeleccionada, setFechaSeleccionada] = useState('')
   const [nota, setNota] = useState('')
 
-  const cargarLeads = async () => {
+  // ── Carga de datos ──────────────────────────────────────────────────────────
+
+  const cargarOpps = async () => {
     const { data, error } = await supabase
       .from('opportunities')
       .select(`
-        id,
-        status,
-        stage,
-        next_action_date,
-        next_action_type,
-        visit_date,
-        follow_up_count,
-        contacts ( name, phone ),
-        properties ( title, price, district, whatsapp_short, whatsapp_full )
+        id, stage, next_action_date, next_action_type,
+        visit_date, follow_up_count, pipeline_type,
+        contacts ( nombre, telefono ),
+        properties ( nombre, precio, distrito )
       `)
-      .neq('status', 'Perdido')
+      .not('stage', 'in', '("Cerrado","Descartado")')
+      .eq('user_id', userIdRef.current)
       .order('next_action_date', { ascending: true })
 
-    if (!error) setLeads(data || [])
+    if (!error) setOpps(data || [])
   }
 
   const cargarProperties = async () => {
@@ -39,523 +71,613 @@ export default function Home() {
     setProperties(data || [])
   }
 
-  const crearLead = async () => {
+  useEffect(() => {
+    cargarOpps()
+    cargarProperties()
+  }, [])
+
+  useEffect(() => {
+    setStageInicial('Nuevo')
+  }, [pipelineNuevo])
+
+  // ── Crear oportunidad ───────────────────────────────────────────────────────
+
+  const crearOpp = async () => {
     if (!nombre || !telefono) {
       alert('Nombre y teléfono son obligatorios')
       return
     }
 
-    const { data: contact } = await supabase
+    const { data: existingContact } = await supabase
       .from('contacts')
-      .insert([{ name: nombre, phone: telefono }])
-      .select()
+      .select('*')
+      .eq('telefono', telefono)
       .single()
 
-    await supabase
-      .from('opportunities')
-      .insert([{
-        contact_id: contact.id,
-        property_id: propertyId || null,
-        status: 'Nuevo',
-        stage: 'Nuevo',
-        next_action_type: 'escribir',
-        next_action_date: new Date().toISOString()
-      }])
+    let contactId
+    if (existingContact) {
+      contactId = existingContact.id
+    } else {
+      const { data: newContact } = await supabase
+        .from('contacts')
+        .insert([{ nombre: nombre, telefono: telefono, user_id: userIdRef.current }])
+        .select()
+        .single()
+      contactId = newContact.id
+    }
+
+    await supabase.from('opportunities').insert([{
+      contact_id: contactId,
+      property_id: pipelineNuevo === 'lead' ? (propertyId || null) : null,
+      stage: stageInicial,
+      pipeline_type: pipelineNuevo,
+      next_action_type: 'escribir',
+      next_action_date: new Date().toISOString(),
+      user_id: userIdRef.current,
+    }])
 
     setNombre('')
     setTelefono('')
     setPropertyId('')
-    cargarLeads()
+    setMostrarForm(false)
+    cargarOpps()
   }
 
-  useEffect(() => {
-    cargarLeads()
-    cargarProperties()
-  }, [])
+  // ── Actualizar stage ────────────────────────────────────────────────────────
 
-  const getLeadsActivos = () => {
-    let limite = new Date()
-    limite.setHours(limite.getHours() + 24)
+  const actualizarStage = async (opp: Opportunity, nuevoStage: string, fecha?: string) => {
+    const esFinal = nuevoStage === 'Cerrado' || nuevoStage === 'Descartado'
 
-    let activos = leads.filter(l =>
-      l.next_action_date &&
-      new Date(l.next_action_date) <= limite
-    )
-
-    if (activos.length === 0) {
-      limite = new Date()
-      limite.setHours(limite.getHours() + 48)
-
-      activos = leads.filter(l =>
-        l.next_action_date &&
-        new Date(l.next_action_date) <= limite
-      )
+    let fechaProxima = fecha
+    if (!fecha && !esFinal) {
+      const auto = new Date()
+      const dias = nuevoStage === 'Seguimiento' ? 2 : 1
+      auto.setDate(auto.getDate() + dias)
+      fechaProxima = auto.toISOString()
     }
-
-    return activos
-  }
-
-  const getProximosRestantes = () => {
-    const limite = new Date()
-    limite.setHours(limite.getHours() + 48)
-    return leads.filter(l =>
-      l.next_action_date &&
-      new Date(l.next_action_date) > limite
-    )
-  }
-
-  const getScore = (l: any) => {
-    let score = 0
-
-    if (l.stage === 'Visita realizada') score += 50
-    else if (l.stage === 'Visita agendada') score += 40
-    else if (l.stage === 'Previsita') score += 30
-    else if (l.stage === 'Contactado') score += 20
-
-    if (l.next_action_date) {
-      const diff = new Date(l.next_action_date).getTime() - Date.now()
-      if (diff < 0) score += 30
-      else if (diff < 86400000) score += 20
-    }
-
-    return score
-  }
-
-  const getMensaje = (l: any, tipo: string) => {
-    const nombre = l.contacts?.name?.split(' ')[0] || ''
-    const propiedad = l.properties?.title || ''
-    const precio = l.properties?.price || ''
-
-    if (tipo === 'primer_contacto') {
-      return `Hola ${nombre}, te escribo por el inmueble "${propiedad}" - ${precio}. ¿Te interesa recibir más información?`
-    }
-    if (tipo === 'seguimiento') {
-      return `Hola ${nombre}, quería saber si pudiste revisar la información del inmueble "${propiedad}". ¿Tienes alguna duda?`
-    }
-    if (tipo === 'confirmar_visita') {
-      const fecha = l.visit_date ? new Date(l.visit_date).toLocaleString('es-PE', { dateStyle: 'full', timeStyle: 'short' }) : ''
-      return `Hola ${nombre}, te confirmo la visita para el ${fecha}. ¿Te parece si nos vemos ahí?`
-    }
-    if (tipo === 'recordatorio') {
-      return `Hola ${nombre}, te escribo para recordarte sobre el inmueble "${propiedad}". ¿Sigues interesado?`
-    }
-    if (tipo === 'gracias_visita') {
-      return `Hola ${nombre}, gracias por visitarnos. ¿Qué te pareció el inmueble "${propiedad}"? ¿Te gustaría avanzar?`
-    }
-    if (tipo === 'cita_perdida') {
-      return `Hola ${nombre}, lamentamos que no pudieras asistir a la visita. ¿Podemos reagendar? Estoy atento`
-    }
-    if (tipo === 'interesado') {
-      return `Hola ${nombre}, me alegra que te interese el inmueble "${propiedad}". ¿Te gustaría agendar una visita para verlo en persona?`
-    }
-    if (tipo === 'sin_interes') {
-      return `Hola ${nombre}, entendido. Si en algún momento cambias de idea, aquí estaré. ¡Saludos!`
-    }
-    if (tipo === 'promocion') {
-      return `Hola ${nombre}, tengo una oportunidad especial en "${propiedad}" - ${precio}. ¡No te la pierdas! ¿Te interesa?`
-    }
-    if (tipo === 'proximamente') {
-      return `Hola ${nombre}, solo quería mantener el contacto sobre el inmueble "${propiedad}". ¿Sigues interesado?`
-    }
-    return `Hola ${nombre}, te escribo por el inmueble "${propiedad}"`
-  }
-
-  const getFecha = (dias: number) => {
-    const d = new Date()
-    d.setDate(d.getDate() + dias)
-    return d.toISOString().slice(0, 16)
-  }
-
-  const ordenar = (arr: any[]) =>
-    [...arr].sort((a, b) => getScore(b) - getScore(a))
-
-  const abrirProgramador = (l: any, evento: string) => {
-    setLeadActivo(l)
-    setEventoActivo(evento)
-    setNota('')
-    
-    const sugerida = new Date()
-    sugerida.setDate(sugerida.getDate() + 1)
-    setFechaSeleccionada(sugerida.toISOString().slice(0, 16))
-  }
-
-  const actualizarStage = async (l: any, evento: string, fecha?: string) => {
-    const mapa: Record<string, string> = {
-      'contactado': 'Contactado',
-      'respondio': 'Previsita',
-      'agenda_visita': 'Visita agendada',
-      'visita_realizada': 'Visita realizada',
-      'cerrado': 'Cierre',
-      'no_interesado': 'Perdido',
-      'no_responde': 'Contactado'
-    }
-
-    const esNoResponde = evento === 'no_responde'
-    let fechaAutomatica = fecha
-    let followUpCount = l.follow_up_count || 0
-
-    if (esNoResponde && !fecha) {
-      const dias = followUpCount === 0 ? 2 : followUpCount === 1 ? 4 : 7
-      const fechaAuto = new Date()
-      fechaAuto.setDate(fechaAuto.getDate() + dias)
-      fechaAutomatica = fechaAuto.toISOString()
-      followUpCount += 1
-    } else if (!fecha && !esNoResponde) {
-      const fechaAuto = new Date()
-      fechaAuto.setDate(fechaAuto.getDate() + 1)
-      fechaAutomatica = fechaAuto.toISOString()
-    }
-
-    const nuevoStage = mapa[evento] || l.stage
-    const esPerdido = nuevoStage === 'Perdido'
-    const esCierre = nuevoStage === 'Cierre'
 
     await supabase.from('interactions').insert([{
-      opportunity_id: l.id,
-      result: evento,
-      note: nota
+      opportunity_id: opp.id,
+      result: nuevoStage,
+      note: nota || null,
     }])
-
-    let visitDateValue = l.visit_date
-    if (evento === 'agenda_visita' && fecha) {
-      visitDateValue = new Date(fecha).toISOString()
-    }
 
     const updateData: any = {
       stage: nuevoStage,
-      next_action_date: fechaAutomatica ? new Date(fechaAutomatica).toISOString() : null,
-      visit_date: visitDateValue
+      next_action_date: esFinal ? null : (fechaProxima ? new Date(fechaProxima).toISOString() : null),
     }
 
-    if (esNoResponde) {
-      updateData.follow_up_count = followUpCount
+    if (nuevoStage === 'Visita' && fecha) {
+      updateData.visit_date = new Date(fecha).toISOString()
     }
 
-    await supabase.from('opportunities').update(updateData).eq('id', l.id)
+    await supabase.from('opportunities').update(updateData).eq('id', opp.id)
 
-    if (esPerdido || esCierre) {
-      setLeads(prev => prev.filter(lead => lead.id !== l.id))
+    if (esFinal) {
+      setOpps(prev => prev.filter(o => o.id !== opp.id))
     } else {
-      setLeads(prev => prev.map(lead =>
-        lead.id === l.id 
-          ? { ...lead, stage: nuevoStage, next_action_date: fecha ? new Date(fecha).toISOString() : null, visit_date: visitDateValue } 
-          : lead
+      setOpps(prev => prev.map(o =>
+        o.id === opp.id ? { ...o, ...updateData } : o
       ))
     }
 
-    setLeadActivo(null)
+    setOppActiva(null)
     setNota('')
   }
 
+  const abrirProgramador = (opp: Opportunity, evento: string) => {
+    setOppActiva(opp)
+    setEventoActivo(evento)
+    setNota('')
+    setFechaSeleccionada(getFecha(1))
+  }
+
   const guardarAccion = async () => {
-    if (!leadActivo || !fechaSeleccionada) return
-    await actualizarStage(leadActivo, eventoActivo, fechaSeleccionada)
+    if (!oppActiva || !fechaSeleccionada) return
+    await actualizarStage(oppActiva, eventoActivo, fechaSeleccionada)
   }
 
-  const contactar = (l: any) => {
-    const telefono = l.contacts?.phone
-    const mensaje = getMensaje(l, 'primer_contacto')
-    const url = `https://wa.me/51${telefono}?text=${encodeURIComponent(mensaje)}`
-    window.open(url, '_blank')
-    abrirProgramador(l, 'contactado')
-  }
+  // ── Filtros ─────────────────────────────────────────────────────────────────
 
-  const marcarContactado = (l: any) => {
-    abrirProgramador(l, 'contactado')
-  }
+  const leads = opps.filter(o => (o.pipeline_type || 'lead') === 'lead')
+  const propietarios = opps.filter(o => o.pipeline_type === 'propietario')
 
-  const getAccionPorStage = (l: any) => {
-    const telefono = l.contacts?.phone
-    const tipoMsg = 
-      l.stage === 'Nuevo' ? 'primer_contacto' : 
-      l.stage === 'Contactado' ? 'seguimiento' : 
-      l.stage === 'Previsita' ? 'interesado' :
-      l.stage === 'Visita agendada' ? 'confirmar_visita' :
-      l.stage === 'Visita realizada' ? 'gracias_visita' :
-      'recordatorio'
-    const urlWhatsApp = `https://wa.me/51${telefono}?text=${encodeURIComponent(getMensaje(l, tipoMsg))}`
-    const botonStyle = { display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: 8 }
+  const accionHoyLeads = leads.filter(estaHoy)
+  const accionHoyProps = propietarios.filter(estaHoy)
+  const vencidosLeads = leads.filter(estaVencido)
+  const vencidosProps = propietarios.filter(estaVencido)
+  const sinAccion = opps.filter(o => !o.next_action_date)
 
-    switch (l.stage) {
-      case 'Nuevo':
+  const ordenar = (arr: any[]) => [...arr].sort((a, b) => getScore(b) - getScore(a))
+
+  // ── Acciones por stage ──────────────────────────────────────────────────────
+
+  const AccionesLead = ({ opp }: { opp: Opportunity }) => {
+    const tel = opp.contacts?.telefono
+    const urlWA = `https://wa.me/51${tel}?text=${encodeURIComponent(getMensaje(opp, getTipoMensaje(opp)))}`
+
+    const BtnWA = () => (
+      <a href={urlWA} target="_blank">
+        <button style={btnStyle('green')}>📱 WA</button>
+      </a>
+    )
+    const BtnCall = () => (
+      <a href={`tel:+51${tel}`}>
+        <button style={btnStyle('blue')}>📞</button>
+      </a>
+    )
+
+    switch (opp.stage) {
+      case 'Interesado':
         return (
-          <div style={botonStyle}>
-            <a href={urlWhatsApp} target="_blank">
-              <button>📱 WhatsApp</button>
-            </a>
-            <a href={`tel:+51${telefono}`}>
-              <button>📞 Llamar</button>
-            </a>
-            <button onClick={() => marcarContactado(l)}>✓ Ya contacté</button>
+          <div style={rowStyle}>
+            <BtnWA /><BtnCall />
+            <button style={btnStyle('gray')} onClick={() => abrirProgramador(opp, 'Seguimiento')}>✓ Seguimiento</button>
+            <button style={btnStyle('red')} onClick={() => actualizarStage(opp, 'Descartado')}>✕</button>
           </div>
         )
-
-      case 'Contactado':
+      case 'Seguimiento':
         return (
-          <div>
-            <div style={botonStyle}>
-              <a href={urlWhatsApp} target="_blank">
-                <button>📱 WhatsApp</button>
-              </a>
-              <a href={`tel:+51${telefono}`}>
-                <button>📞 Llamar</button>
-              </a>
-              <button disabled style={{ background: '#4CAF50', color: 'white' }}>✓ Contactado</button>
-            </div>
-            <div style={botonStyle}>
-              <span style={{ fontSize: 12, color: '#666', marginRight: 'auto' }}>¿Respondió?</span>
-              <button onClick={() => actualizarStage(l, 'respondio')}>✅ Sí</button>
-              <button onClick={() => actualizarStage(l, 'no_responde')}>❌ No</button>
-              <button onClick={() => actualizarStage(l, 'no_interesado')}>🗑️</button>
-            </div>
+          <div style={rowStyle}>
+            <BtnWA /><BtnCall />
+            <button style={btnStyle('purple')} onClick={() => abrirProgramador(opp, 'Visita')}>📅 Agendar visita</button>
+            <button style={btnStyle('gray')} onClick={() => abrirProgramador(opp, 'Seguimiento')}>↩ Reintentar</button>
+            <button style={btnStyle('red')} onClick={() => actualizarStage(opp, 'Descartado')}>✕</button>
           </div>
         )
-
-      case 'Previsita':
+case 'Visita':
         return (
-          <div style={{ ...botonStyle, flexDirection: 'column', alignItems: 'flex-end', gap: '8px' }}>
-            <div>
-              <input 
-                type="datetime-local" 
-                id={`fecha-${l.id}`}
-                step="300"
-                style={{ marginRight: '8px', padding: '5px' }}
-              />
-              <button onClick={() => {
-                const fecha = (document.getElementById(`fecha-${l.id}`) as HTMLInputElement)?.value
-                if (fecha) {
-                  abrirProgramador(l, 'agenda_visita')
-                  setFechaSeleccionada(fecha)
-                }
-              }}>
-                📅 Confirmar
-              </button>
-            </div>
-            <button onClick={() => actualizarStage(l, 'no_responde')}>❌ No responde</button>
-          </div>
-        )
-
-      case 'Visita agendada':
-        return (
-          <div style={botonStyle}>
-            {l.visit_date && (
-              <span style={{ marginRight: 'auto', fontSize: '12px', color: '#666' }}>
-                📅 {new Date(l.visit_date).toLocaleString()}
+          <div style={rowStyle}>
+            {opp.visit_date && (
+              <span style={{ fontSize: 11, color: '#64748b', marginRight: 'auto' }}>
+                📅 {new Date(opp.visit_date).toLocaleString('es-PE', { dateStyle: 'short', timeStyle: 'short' })}
               </span>
             )}
-            <button onClick={() => actualizarStage(l, 'visita_realizada')}>✅ Visita realizada</button>
-            <button onClick={() => actualizarStage(l, 'no_responde')}>❌ No se presentó</button>
+            <BtnWA />
+            <button style={btnStyle('purple')} onClick={() => abrirProgramador(opp, 'Visita')}>📅 Reagendar</button>
+            <button style={btnStyle('green')} onClick={() => abrirProgramador(opp, 'Seguimiento post-visita')}>✅ Realizada</button>
+            <button style={btnStyle('gray')} onClick={() => actualizarStage(opp, 'Seguimiento')}>❌ No vino</button>
           </div>
         )
-
-      case 'Visita realizada':
+      case 'Seguimiento post-visita':
         return (
-          <div style={botonStyle}>
-            <button onClick={() => actualizarStage(l, 'cerrado')}>🎉 Cerrar</button>
-            <button onClick={() => actualizarStage(l, 'no_responde')}>⏳ Pendiente</button>
+          <div style={rowStyle}>
+            <BtnWA /><BtnCall />
+            <button style={btnStyle('green')} onClick={() => actualizarStage(opp, 'Cerrado')}>🎉 Cerrar</button>
+            <button style={btnStyle('gray')} onClick={() => abrirProgramador(opp, 'Seguimiento post-visita')}>⏳ Pendiente</button>
+            <button style={btnStyle('red')} onClick={() => actualizarStage(opp, 'Descartado')}>✕</button>
           </div>
         )
-
-      case 'Cierre':
-        return (
-          <div style={botonStyle}>
-            <button disabled style={{ background: '#4CAF50', color: 'white' }}>🎉 Cerrado</button>
-          </div>
-        )
-
       default:
         return null
     }
   }
 
-  const accionLabel = (tipo: string) => {
-    if (tipo === 'llamar') return '📞 Llamar'
-    if (tipo === 'escribir') return '📝 Escribir'
-    if (tipo === 'visita') return '🏠 Visita'
-    return ''
+  const AccionesPropietario = ({ opp }: { opp: Opportunity }) => {
+    const tel = opp.contacts?.telefono
+    const urlWA = `https://wa.me/51${tel}?text=${encodeURIComponent(getMensaje(opp, getTipoMensaje(opp)))}`
+
+    const BtnWA = () => (
+      <a href={urlWA} target="_blank">
+        <button style={btnStyle('green')}>📱 WA</button>
+      </a>
+    )
+    const BtnCall = () => (
+      <a href={`tel:+51${tel}`}>
+        <button style={btnStyle('blue')}>📞</button>
+      </a>
+    )
+
+    switch (opp.stage) {
+      case 'Contactado':
+        return (
+          <div style={rowStyle}>
+            <BtnWA /><BtnCall />
+            <button style={btnStyle('purple')} onClick={() => abrirProgramador(opp, 'Propuesta/Tasación')}>📊 Propuesta</button>
+            <button style={btnStyle('gray')} onClick={() => abrirProgramador(opp, 'Contactado')}>↩ Reintentar</button>
+            <button style={btnStyle('red')} onClick={() => actualizarStage(opp, 'Descartado')}>✕</button>
+          </div>
+        )
+      case 'Propuesta/Tasación':
+        return (
+          <div style={rowStyle}>
+            <BtnWA /><BtnCall />
+            <button style={btnStyle('gray')} onClick={() => abrirProgramador(opp, 'Seguimiento')}>🔄 Seguimiento</button>
+            <button style={btnStyle('green')} onClick={() => actualizarStage(opp, 'Cerrado')}>🎉 Captado</button>
+            <button style={btnStyle('red')} onClick={() => actualizarStage(opp, 'Descartado')}>✕</button>
+          </div>
+        )
+      case 'Seguimiento':
+        return (
+          <div style={rowStyle}>
+            <BtnWA /><BtnCall />
+            <button style={btnStyle('green')} onClick={() => actualizarStage(opp, 'Cerrado')}>🎉 Captado</button>
+            <button style={btnStyle('gray')} onClick={() => abrirProgramador(opp, 'Seguimiento')}>↩ Reintentar</button>
+            <button style={btnStyle('red')} onClick={() => actualizarStage(opp, 'Descartado')}>✕</button>
+          </div>
+        )
+      default:
+        return null
+    }
   }
 
-  const renderLead = (l: any) => {
-    const telefono = l.contacts?.phone
-    const propiedad = l.properties
-    const esUrgente = new Date(l.next_action_date) < new Date()
-    const score = getScore(l)
-    const colorCalor = score > 70 ? 'red' : score > 40 ? 'orange' : 'gray'
+  // ── Card de oportunidad ─────────────────────────────────────────────────────
 
-    if (!telefono) {
-      return (
-        <div
-          key={l.id}
-          style={{
-            marginBottom: 12,
-            padding: 10,
-            background: '#ffcccc',
-            color: '#cc0000'
-          }}
-        >
-          <strong>⚠️ {l.contacts?.name}</strong> - Sin teléfono
-          <button onClick={() => actualizarStage(l, 'no_interesado')}>Eliminar</button>
-        </div>
-      )
-    }
-
-    if (l.status === 'Perdido' || l.status === 'Cierre') {
-      return null
-    }
-
-    const stageLabel = (stage: string) => {
-      const map: Record<string, string> = {
-        'Nuevo': '🆕 Nuevo',
-        'Contactado': '📞 Contactado',
-        'Previsita': '📋 Previsita',
-        'Visita agendada': '📅 Visita agendada',
-        'Visita realizada': '✅ Visita realizada',
-        'Cierre': '🎉 Cierre',
-        'Perdido': '❌ Perdido'
-      }
-      return map[stage] || stage
-    }
+  const OppCard = ({ opp }: { opp: any }) => {
+    const score = getScore(opp)
+    const vencido = estaVencido(opp)
+    const esProp = opp.pipeline_type === 'propietario'
 
     return (
-      <div
-        key={l.id}
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          marginBottom: 12,
-          padding: 10,
-          background: esUrgente ? '#ffe5e5' : '#f5f5f5',
-          color: '#000'
-        }}
-      >
-        <div style={{ flex: 1 }}>
-          <span style={{ 
-            width: 10, 
-            height: 10, 
-            background: colorCalor, 
-            borderRadius: '50%', 
-            display: 'inline-block',
-            marginRight: 6
+      <div style={{
+        background: vencido ? '#fff5f5' : '#fff',
+        border: `1px solid ${vencido ? '#fecaca' : '#e2e8f0'}`,
+        borderLeft: `3px solid ${getCalor(score)}`,
+        borderRadius: 8,
+        padding: '10px 12px',
+        marginBottom: 8,
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <div>
+            <strong style={{ fontSize: 14 }}>{opp.contacts?.nombre}</strong>
+            {!esProp && opp.properties && (
+              <span style={{ fontSize: 12, color: '#64748b', marginLeft: 8 }}>
+                {opp.properties?.nombre} · {opp.properties?.precio}
+              </span>
+            )}
+            <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 2 }}>
+              {STAGE_LABEL[opp.stage] || opp.stage}
+              {opp.next_action_date && (
+                <span style={{ marginLeft: 8, color: vencido ? '#ef4444' : '#64748b' }}>
+                  {vencido ? '⚠️ ' : '🕐 '}
+                  {new Date(opp.next_action_date).toLocaleString('es-PE', { dateStyle: 'short', timeStyle: 'short' })}
+                </span>
+              )}
+            </div>
+          </div>
+          <div style={{
+            width: 8, height: 8, borderRadius: '50%',
+            background: getCalor(score), flexShrink: 0, marginTop: 4
           }} />
-          <strong>{l.contacts?.name}</strong> - {stageLabel(l.stage)}
-          {propiedad && <span> - {propiedad.title} - {propiedad.price}</span>}
-          <br />
-          {l.next_action_date && new Date(l.next_action_date).toLocaleString()}
-          <br />
-          {getAccionPorStage(l)}
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
-          <a href={`https://wa.me/51${telefono}?text=${encodeURIComponent(getMensaje(l, l.stage === 'Nuevo' ? 'primer_contacto' : l.stage === 'Contactado' ? 'seguimiento' : 'recordatorio'))}`} target="_blank">📱</a>
-          <a href={`tel:+51${telefono}`}>📞</a>
-          <button onClick={() => actualizarStage(l, 'no_interesado')} style={{ background: '#ccc', fontSize: 11, padding: '2px 6px' }}>Descartar</button>
+        <div style={{ marginTop: 8 }}>
+          {esProp
+            ? <AccionesPropietario opp={opp} />
+            : <AccionesLead opp={opp} />
+          }
         </div>
       </div>
     )
   }
 
-  const hoyTotal = getLeadsActivos()
-  const accionHoy = leads.filter(l => {
-    if (!l.next_action_date) return false
-    return new Date(l.next_action_date) <= new Date()
-  })
-  const proximosRestantes = getProximosRestantes()
-  const vencidos = leads.filter(l => {
-    if (!l.next_action_date) return false
-    return new Date(l.next_action_date) < new Date()
-  })
-  const sinAccion = leads.filter(l => !l.next_action_date)
+  // ── Vista HOY ───────────────────────────────────────────────────────────────
+
+  const VistaHoy = () => {
+    const totalHoy = accionHoyLeads.length + accionHoyProps.length
+    const totalVencidos = vencidosLeads.length + vencidosProps.length
+
+    return (
+      <div>
+        {/* Resumen numérico */}
+        <div style={{
+          display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)',
+          gap: 8, marginBottom: 16
+        }}>
+          {[
+            { label: 'Acción hoy', val: totalHoy, color: totalHoy > 0 ? '#ef4444' : '#22c55e', icon: '🔥' },
+            { label: 'Vencidos', val: totalVencidos, color: totalVencidos > 0 ? '#f97316' : '#94a3b8', icon: '⚠️' },
+            { label: 'Propietarios', val: propietarios.length, color: '#8b5cf6', icon: '🏠' },
+            { label: 'Compradores', val: leads.length, color: '#3b82f6', icon: '👥' },
+          ].map(s => (
+            <div key={s.label} style={{
+              background: '#fff', border: '1px solid #e2e8f0',
+              borderRadius: 8, padding: '10px 8px', textAlign: 'center'
+            }}>
+              <div style={{ fontSize: 20, fontWeight: 700, color: s.color }}>{s.icon} {s.val}</div>
+              <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 2 }}>{s.label}</div>
+            </div>
+          ))}
+        </div>
+
+        {sinAccion.length > 0 && (
+          <div style={{ background: '#1e1e2e', color: '#facc15', padding: '8px 12px', borderRadius: 6, marginBottom: 12, fontSize: 13 }}>
+            ⚠️ {sinAccion.length} contacto{sinAccion.length > 1 ? 's' : ''} sin fecha de seguimiento
+          </div>
+        )}
+
+        {/* Compradores hoy */}
+        {accionHoyLeads.length > 0 && (
+          <>
+            <h3 style={secTitle}>👥 Compradores — Acción hoy ({accionHoyLeads.length})</h3>
+            {ordenar(accionHoyLeads).map(o => <OppCard key={o.id} opp={o} />)}
+          </>
+        )}
+
+        {/* Propietarios hoy */}
+        {accionHoyProps.length > 0 && (
+          <>
+            <h3 style={secTitle}>🏠 Propietarios — Acción hoy ({accionHoyProps.length})</h3>
+            {ordenar(accionHoyProps).map(o => <OppCard key={o.id} opp={o} />)}
+          </>
+        )}
+
+        {totalHoy === 0 && (
+          <div style={{ textAlign: 'center', padding: '40px 0', color: '#94a3b8' }}>
+            <div style={{ fontSize: 32 }}>✅</div>
+            <p style={{ marginTop: 8 }}>Sin acciones pendientes para hoy</p>
+            {(leads.length + propietarios.length) > 0 && (
+              <p style={{ fontSize: 13 }}>Tienes {leads.length + propietarios.length} contactos programados para más adelante</p>
+            )}
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  // ── Vista Leads ─────────────────────────────────────────────────────────────
+
+  const VistaLeads = () => {
+    const porStage = STAGES_LEAD.filter(s => s !== 'Cerrado' && s !== 'Descartado')
+    return (
+      <div>
+        {porStage.map(stage => {
+          const grupo = leads.filter(o => o.stage === stage)
+          if (grupo.length === 0) return null
+          return (
+            <div key={stage} style={{ marginBottom: 16 }}>
+              <h3 style={secTitle}>{STAGE_LABEL[stage] || stage} ({grupo.length})</h3>
+              {ordenar(grupo).map(o => <OppCard key={o.id} opp={o} />)}
+            </div>
+          )
+        })}
+        {leads.length === 0 && (
+          <div style={{ textAlign: 'center', padding: '40px 0', color: '#94a3b8' }}>
+            <div style={{ fontSize: 32 }}>📭</div>
+            <p>Sin compradores activos</p>
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  // ── Vista Propietarios ──────────────────────────────────────────────────────
+
+  const VistaPropietarios = () => {
+    const porStage = STAGES_PROPIETARIO.filter(s => s !== 'Cerrado' && s !== 'Descartado')
+    return (
+      <div>
+        {porStage.map(stage => {
+          const grupo = propietarios.filter(o => o.stage === stage)
+          if (grupo.length === 0) return null
+          return (
+            <div key={stage} style={{ marginBottom: 16 }}>
+              <h3 style={secTitle}>{STAGE_LABEL[stage] || stage} ({grupo.length})</h3>
+              {ordenar(grupo).map(o => <OppCard key={o.id} opp={o} />)}
+            </div>
+          )
+        })}
+        {propietarios.length === 0 && (
+          <div style={{ textAlign: 'center', padding: '40px 0', color: '#94a3b8' }}>
+            <div style={{ fontSize: 32 }}>🏠</div>
+            <p>Sin propietarios en captación</p>
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  // ─── RENDER ───────────────────────────────────────────────────────────────────
 
   return (
-    <div style={{ padding: 20, background: '#fff', minHeight: '100vh', color: '#000' }}>
-      <div style={{ marginBottom: 20, padding: 10, border: '1px solid #ccc' }}>
-        <h3>Crear Lead</h3>
-        <input
-          placeholder="Nombre"
-          value={nombre}
-          onChange={(e) => setNombre(e.target.value)}
-          style={{ marginRight: 5 }}
-        />
-        <input
-          placeholder="Teléfono"
-          value={telefono}
-          onChange={(e) => setTelefono(e.target.value)}
-          style={{ marginRight: 5 }}
-        />
-        <select onChange={(e) => setPropertyId(e.target.value)} value={propertyId} style={{ marginRight: 5 }}>
-          <option value="">Seleccionar propiedad</option>
-          {properties.map(p => (
-            <option key={p.id} value={p.id}>
-              {p.title}
-            </option>
-          ))}
-        </select>
-        <button onClick={crearLead}>Crear Lead</button>
+    <div style={{ background: '#f8fafc', minHeight: '100vh', color: '#0f172a', fontFamily: 'system-ui, sans-serif' }}>
+
+      {/* Header */}
+      <div style={{
+        background: '#0f172a', color: '#fff', padding: '12px 16px',
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+        position: 'sticky', top: 0, zIndex: 100
+      }}>
+        <span style={{ fontWeight: 700, fontSize: 16 }}>CRM</span>
+        <button
+          onClick={() => setMostrarForm(!mostrarForm)}
+          style={{
+            background: '#3b82f6', color: '#fff', border: 'none',
+            borderRadius: 6, padding: '6px 14px', fontSize: 14, cursor: 'pointer'
+          }}
+        >
+          + Nuevo
+        </button>
       </div>
 
-      {vencidos.length > 0 && (
-        <div style={{ background: 'red', color: 'white', padding: 10, marginBottom: 10 }}>
-          ⚠️ Tienes {vencidos.length} leads pendientes
-        </div>
-      )}
-
-      {sinAccion.length > 0 && (
-        <div style={{ background: 'black', color: 'yellow', padding: 10, marginBottom: 10 }}>
-          ⚠️ {sinAccion.length} leads sin seguimiento
-        </div>
-      )}
-
-      <h1>🔥 {accionHoy.length} Acción hoy</h1>
-
-      {accionHoy.length > 0 ? (
-        <>
-          {ordenar(accionHoy).map(renderLead)}
-        </>
-      ) : (
-        <>
-          <h2>📋 Sin acción inmediata</h2>
-          {proximosRestantes.length > 0 && (
-            <p style={{ color: '#888' }}>Tienes {proximosRestantes.length} leads programados para más adelante</p>
-          )}
-        </>
-      )}
-
-      {leadActivo && (
+      {/* Form crear */}
+      {mostrarForm && (
         <div style={{
-          position: 'fixed',
-          bottom: 0,
-          left: 0,
-          right: 0,
-          background: '#fff',
-          borderTop: '2px solid #333',
-          padding: '15px',
-          boxShadow: '0 -2px 10px rgba(0,0,0,0.1)',
-          zIndex: 1000
+          background: '#fff', borderBottom: '1px solid #e2e8f0',
+          padding: '14px 16px'
         }}>
-          <strong style={{ fontSize: '16px' }}>Programar siguiente acción</strong>
-          <div style={{ marginTop: '10px', display: 'flex', gap: '10px', alignItems: 'center' }}>
-            <input
-              type="datetime-local"
-              value={fechaSeleccionada}
-              onChange={(e) => setFechaSeleccionada(e.target.value)}
-              step="300"
-              style={{ padding: '8px', fontSize: '14px' }}
-            />
-            <div style={{ display: 'flex', gap: '4px', marginTop: 4 }}>
-              <button onClick={() => setFechaSeleccionada(getFecha(1))} style={{ padding: '4px 8px', fontSize: '12px' }}>+1 día</button>
-              <button onClick={() => setFechaSeleccionada(getFecha(2))} style={{ padding: '4px 8px', fontSize: '12px' }}>+2 días</button>
-              <button onClick={() => setFechaSeleccionada(getFecha(7))} style={{ padding: '4px 8px', fontSize: '12px' }}>+7 días</button>
-            </div>
-            <input
-              placeholder="Nota (opcional)"
-              value={nota}
-              onChange={(e) => setNota(e.target.value)}
-              style={{ padding: '8px', flex: 1 }}
-            />
-            <button onClick={guardarAccion} style={{ background: '#4CAF50', color: 'white', padding: '10px 20px' }}>Guardar</button>
-            <button onClick={() => { setLeadActivo(null); setNota('') }} style={{ padding: '10px' }}>Cancelar</button>
+          <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
+            <button
+              onClick={() => setPipelineNuevo('lead')}
+              style={{
+                ...btnStyle(pipelineNuevo === 'lead' ? 'blue' : 'ghost'),
+                flex: 1, padding: '8px 0'
+              }}
+            >
+              👥 Comprador
+            </button>
+            <button
+              onClick={() => setPipelineNuevo('propietario')}
+              style={{
+                ...btnStyle(pipelineNuevo === 'propietario' ? 'purple' : 'ghost'),
+                flex: 1, padding: '8px 0'
+              }}
+            >
+              🏠 Propietario
+            </button>
           </div>
+          <input
+            placeholder="Nombre *"
+            value={nombre}
+            onChange={e => setNombre(e.target.value)}
+            style={inputStyle}
+          />
+          <input
+            placeholder="Teléfono *"
+            value={telefono}
+            onChange={e => setTelefono(e.target.value)}
+            style={inputStyle}
+            type="tel"
+          />
+          {pipelineNuevo === 'lead' && (
+            <select
+              onChange={e => setPropertyId(e.target.value)}
+              value={propertyId}
+              style={inputStyle}
+            >
+              <option value="">Propiedad (opcional)</option>
+              {properties.map(p => (
+                <option key={p.id} value={p.id}>{p.nombre}</option>
+              ))}
+            </select>
+          )}
+          <select
+            onChange={e => setStageInicial(e.target.value)}
+            value={stageInicial}
+            style={inputStyle}
+          >
+            {(pipelineNuevo === 'lead' ? STAGES_LEAD : STAGES_PROPIETARIO)
+              .filter(s => s !== 'Cerrado' && s !== 'Descartado')
+              .map(s => (
+                <option key={s} value={s}>{s}</option>
+              ))}
+          </select>
+          <div style={{ display: 'flex', gap: 6, marginTop: 4 }}>
+            <button onClick={crearOpp} style={{ ...btnStyle('blue'), flex: 1, padding: '10px 0' }}>
+              Crear
+            </button>
+            <button onClick={() => setMostrarForm(false)} style={{ ...btnStyle('ghost'), padding: '10px 16px' }}>
+              Cancelar
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Tabs */}
+      <div style={{
+        display: 'flex', background: '#fff',
+        borderBottom: '1px solid #e2e8f0',
+        position: 'sticky', top: 52, zIndex: 99
+      }}>
+        {([
+          { key: 'hoy', label: '🔥 Hoy', badge: accionHoyLeads.length + accionHoyProps.length },
+          { key: 'leads', label: '👥 Compradores', badge: leads.length },
+          { key: 'propietarios', label: '🏠 Propietarios', badge: propietarios.length },
+        ] as { key: Vista; label: string; badge: number }[]).map(tab => (
+          <button
+            key={tab.key}
+            onClick={() => setVista(tab.key)}
+            style={{
+              flex: 1, padding: '12px 4px', border: 'none', cursor: 'pointer',
+              background: 'transparent', fontSize: 12, fontWeight: vista === tab.key ? 700 : 400,
+              color: vista === tab.key ? '#3b82f6' : '#64748b',
+              borderBottom: vista === tab.key ? '2px solid #3b82f6' : '2px solid transparent',
+            }}
+          >
+            {tab.label}
+            {tab.badge > 0 && (
+              <span style={{
+                marginLeft: 4, background: vista === tab.key ? '#3b82f6' : '#e2e8f0',
+                color: vista === tab.key ? '#fff' : '#64748b',
+                borderRadius: 10, padding: '1px 6px', fontSize: 10
+              }}>
+                {tab.badge}
+              </span>
+            )}
+          </button>
+        ))}
+      </div>
+
+      {/* Contenido */}
+      <div style={{ padding: '14px 16px', maxWidth: 680, margin: '0 auto' }}>
+        {vista === 'hoy' && <VistaHoy />}
+        {vista === 'leads' && <VistaLeads />}
+        {vista === 'propietarios' && <VistaPropietarios />}
+      </div>
+
+      {/* Programador de acción (bottom sheet) */}
+      {oppActiva && (
+        <div style={{
+          position: 'fixed', bottom: 0, left: 0, right: 0,
+          background: '#fff', borderTop: '2px solid #0f172a',
+          padding: 16, zIndex: 200,
+          boxShadow: '0 -4px 20px rgba(0,0,0,0.15)'
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
+            <strong style={{ fontSize: 15 }}>
+              {eventoActivo} — {oppActiva.contacts?.nombre}
+            </strong>
+            <button onClick={() => setOppActiva(null)} style={{ background: 'none', border: 'none', fontSize: 18, cursor: 'pointer' }}>✕</button>
+          </div>
+          <input
+            type="datetime-local"
+            value={fechaSeleccionada}
+            onChange={e => setFechaSeleccionada(e.target.value)}
+            step="300"
+            style={{ ...inputStyle, marginBottom: 8 }}
+          />
+          <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
+            {[1, 2, 7].map(d => (
+              <button key={d} onClick={() => setFechaSeleccionada(getFecha(d))} style={btnStyle('ghost')}>
+                +{d}d
+              </button>
+            ))}
+          </div>
+          <input
+            placeholder="Nota (opcional)"
+            value={nota}
+            onChange={e => setNota(e.target.value)}
+            style={{ ...inputStyle, marginBottom: 8 }}
+          />
+          <button onClick={guardarAccion} style={{ ...btnStyle('blue'), width: '100%', padding: '12px 0', fontSize: 15 }}>
+            Guardar
+          </button>
         </div>
       )}
     </div>
   )
+}
+
+// ─── ESTILOS ──────────────────────────────────────────────────────────────────
+
+const inputStyle: React.CSSProperties = {
+  width: '100%', padding: '9px 12px', fontSize: 14,
+  border: '1px solid #e2e8f0', borderRadius: 6,
+  marginBottom: 6, boxSizing: 'border-box', color: '#0f172a',
+  background: '#fff',
+}
+
+const secTitle: React.CSSProperties = {
+  fontSize: 13, fontWeight: 600, color: '#64748b',
+  textTransform: 'uppercase', letterSpacing: '0.05em',
+  marginBottom: 8, marginTop: 0
+}
+
+const rowStyle: React.CSSProperties = {
+  display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 4
+}
+
+const btnStyle = (variant: string): React.CSSProperties => {
+  const base: React.CSSProperties = {
+    border: 'none', borderRadius: 5, cursor: 'pointer',
+    padding: '5px 10px', fontSize: 12, fontWeight: 500,
+  }
+  const variants: Record<string, React.CSSProperties> = {
+    green: { background: '#dcfce7', color: '#16a34a' },
+    blue: { background: '#3b82f6', color: '#fff' },
+    purple: { background: '#ede9fe', color: '#7c3aed' },
+    red: { background: '#fee2e2', color: '#dc2626' },
+    gray: { background: '#f1f5f9', color: '#475569' },
+    ghost: { background: '#f1f5f9', color: '#475569', border: '1px solid #e2e8f0' },
+  }
+  return { ...base, ...(variants[variant] || variants.gray) }
 }
