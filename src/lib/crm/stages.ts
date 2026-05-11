@@ -1,30 +1,28 @@
 export const STAGES_LEAD = [
-  'Nuevo',
+  'Contactado',
   'Interesado',
-  'Seguimiento',
   'Visita',
-  'Seguimiento post-visita',
+  'Seguimiento',
   'Cerrado',
-  'Descartado'
+  'Perdido'
 ]
 
 export const STAGES_PROPIETARIO = [
-  'Nuevo',
   'Contactado',
-  'Propuesta/Tasación',
+  'Tasación',
   'Seguimiento',
-  'Cerrado',
-  'Descartado'
+  'Captado',
+  'No captado'
 ]
 
 export const STAGE_LABEL: Record<string, string> = {
-  'Nuevo': '🆕 Nuevo',
-  'Interesado': '💬 Interesado',
-  'Seguimiento': '🔄 Seguimiento',
-  'Visita': '🏠 Visita',
-  'Seguimiento post-visita': '📋 Post-visita',
-  'Cerrado': '🎉 Cerrado',
-  'Descartado': '❌ Descartado',
   'Contactado': '📞 Contactado',
-  'Propuesta/Tasación': '📊 Propuesta',
+  'Interesado': '💬 Interesado',
+  'Visita': '🏠 Visita',
+  'Seguimiento': '📋 Seguimiento',
+  'Cerrado': '🎉 Cerrado',
+  'Perdido': '❌ Perdido',
+  'Tasación': '📊 Tasación',
+  'Captado': '🎉 Captado',
+  'No captado': '❌ No captado',
 }

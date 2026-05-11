@@ -8,6 +8,8 @@ import { getFecha, estaHoy, estaVencido } from '../lib/crm/dates'
 import { getMensaje, getTipoMensaje } from '../lib/crm/messages'
 import { getScore, getCalor } from '../lib/crm/scoring'
 import type { Opportunity } from '../lib/crm/types'
+import { useOpportunities } from '../hooks/useOpportunities'
+import { useTimeline } from '../hooks/useTimeline'
 
 // ─── TIPOS ────────────────────────────────────────────────────────────────────
 
@@ -27,19 +29,28 @@ export default function Home() {
 }
 
 function CRMApp({ userId }: { userId: string }) {
-  const [opps, setOpps] = useState<any[]>([])
-  const [properties, setProperties] = useState<any[]>([])
   const [vista, setVista] = useState<Vista>('hoy')
 
   const userIdRef = useRef(userId)
   useEffect(() => { userIdRef.current = userId }, [userId])
+
+  // Hooks
+  const { 
+    opps, properties, activities, loading, 
+    cargarOpps, crearOpp, actualizarStage, completarCaptacion 
+  } = useOpportunities(userIdRef.current)
+
+  const { 
+    timeline, timelineOpen, selectedOpp, loading: timelineLoading,
+    cargarTimeline, abrirTimeline, cerrarTimeline, registrarActividad 
+  } = useTimeline()
 
   // Form crear
   const [nombre, setNombre] = useState('')
   const [telefono, setTelefono] = useState('')
   const [propertyId, setPropertyId] = useState('')
   const [pipelineNuevo, setPipelineNuevo] = useState<PipelineType>('lead')
-  const [stageInicial, setStageInicial] = useState('Nuevo')
+  const [stageInicial, setStageInicial] = useState('Contactado')
   const [mostrarForm, setMostrarForm] = useState(false)
 
   // Programador de acción
@@ -48,119 +59,123 @@ function CRMApp({ userId }: { userId: string }) {
   const [fechaSeleccionada, setFechaSeleccionada] = useState('')
   const [nota, setNota] = useState('')
 
-  // ── Carga de datos ──────────────────────────────────────────────────────────
+  // Modal actividad manual
+  const [mostrarModalActividad, setMostrarModalActividad] = useState(false)
+  const [actividadOpp, setActividadOpp] = useState<any>(null)
+  const [tipoActividad, setTipoActividad] = useState('call')
+  const [resultadoActividad, setResultadoActividad] = useState('')
+  const [notaActividad, setNotaActividad] = useState('')
+  const [fechaActividad, setFechaActividad] = useState('')
 
-  const cargarOpps = async () => {
-    const { data, error } = await supabase
-      .from('opportunities')
-      .select(`
-        id, stage, next_action_date, next_action_type,
-        visit_date, follow_up_count, pipeline_type,
-        contacts ( nombre, telefono ),
-        properties ( nombre, precio, distrito )
-      `)
-      .not('stage', 'in', '("Cerrado","Descartado")')
-      .eq('user_id', userIdRef.current)
-      .order('next_action_date', { ascending: true })
+  // Modal captación propietario
+  const [mostrarModalCaptacion, setMostrarModalCaptacion] = useState(false)
+  const [captacionOpp, setCaptacionOpp] = useState<any>(null)
+  const [captarModo, setCaptarModo] = useState<'crear' | 'vincular'>('crear')
+  const [propiedadNombre, setPropiedadNombre] = useState('')
+  const [propiedadPrecio, setPropiedadPrecio] = useState('')
+  const [propiedadDistrito, setPropiedadDistrito] = useState('')
+  const [propiedadIdSeleccionada, setPropiedadIdSeleccionada] = useState('')
 
-    if (!error) setOpps(data || [])
+  // ── Helpers ───────────────────────────────────────────────────────────────────
+
+  const ICONO_TYPE: Record<string, string> = {
+    'call': '📞',
+    'whatsapp': '📱', 
+    'visit': '🏠',
+    'meeting': '🤝',
+    'email': '📧',
+    'note': '📝'
   }
 
-  const cargarProperties = async () => {
-    const { data } = await supabase.from('properties').select('*')
-    setProperties(data || [])
+  const TIPOS_ACTIVIDAD = [
+    { value: 'call', label: '📞 Llamada' },
+    { value: 'whatsapp', label: '📱 WhatsApp' },
+    { value: 'visit', label: '🏠 Visita' },
+    { value: 'meeting', label: '🤝 Reunión' },
+    { value: 'email', label: '📧 Email' },
+    { value: 'note', label: '📝 Nota' },
+  ]
+
+  const RESULTADOS = [
+    { value: 'respondio', label: '✓ Respondió' },
+    { value: 'no_respondio', label: '✕ No respondió' },
+    { value: 'reagendo', label: '📅 Reagendó' },
+    { value: 'interesado', label: '💡 Interesado' },
+    { value: 'sin_interes', label: '😴 Sin interés' },
+    { value: 'confirmo_visita', label: '✅ Confirmó visita' },
+  ]
+
+  const getTiempoRelativo = (fecha: string) => {
+    if (!fecha) return ''
+    const ahora = new Date()
+    const actFecha = new Date(fecha)
+    const diffMs = ahora.getTime() - actFecha.getTime()
+    const diffHrs = Math.floor(diffMs / (1000 * 60 * 60))
+    const diffDias = Math.floor(diffHrs / 24)
+    if (diffHrs < 1) return 'ahora'
+    if (diffHrs < 24) return `${diffHrs}h`
+    if (diffDias === 1) return 'ayer'
+    if (diffDias < 7) return `${diffDias}d`
+    return actFecha.toLocaleDateString('es-PE', { day: 'numeric', month: 'short' })
   }
 
-  useEffect(() => {
-    cargarOpps()
-    cargarProperties()
-  }, [])
+  // ── Carga de datos - ya manejada por hooks ─────────────────────────────────
 
   useEffect(() => {
-    setStageInicial('Nuevo')
+    setStageInicial('Contactado')
   }, [pipelineNuevo])
 
   // ── Crear oportunidad ───────────────────────────────────────────────────────
 
-  const crearOpp = async () => {
-    if (!nombre || !telefono) {
-      alert('Nombre y teléfono son obligatorios')
-      return
-    }
-
-    const { data: existingContact } = await supabase
-      .from('contacts')
-      .select('*')
-      .eq('telefono', telefono)
-      .single()
-
-    let contactId
-    if (existingContact) {
-      contactId = existingContact.id
-    } else {
-      const { data: newContact } = await supabase
-        .from('contacts')
-        .insert([{ nombre: nombre, telefono: telefono, user_id: userIdRef.current }])
-        .select()
-        .single()
-      contactId = newContact.id
-    }
-
-    await supabase.from('opportunities').insert([{
-      contact_id: contactId,
-      property_id: pipelineNuevo === 'lead' ? (propertyId || null) : null,
-      stage: stageInicial,
-      pipeline_type: pipelineNuevo,
-      next_action_type: 'escribir',
-      next_action_date: new Date().toISOString(),
-      user_id: userIdRef.current,
-    }])
+  const handleCrearOpp = async () => {
+    await crearOpp({
+      nombre,
+      telefono,
+      pipeline: pipelineNuevo,
+      propertyId,
+      stageInicial,
+    })
 
     setNombre('')
     setTelefono('')
     setPropertyId('')
     setMostrarForm(false)
-    cargarOpps()
   }
 
-  // ── Actualizar stage ────────────────────────────────────────────────────────
+  // ── Captación de propietario (UI handlers) ─────────────────────────────────
 
-  const actualizarStage = async (opp: Opportunity, nuevoStage: string, fecha?: string) => {
-    const esFinal = nuevoStage === 'Cerrado' || nuevoStage === 'Descartado'
-
-    let fechaProxima = fecha
-    if (!fecha && !esFinal) {
-      const auto = new Date()
-      const dias = nuevoStage === 'Seguimiento' ? 2 : 1
-      auto.setDate(auto.getDate() + dias)
-      fechaProxima = auto.toISOString()
-    }
-
-    await supabase.from('interactions').insert([{
-      opportunity_id: opp.id,
-      result: nuevoStage,
-      note: nota || null,
-    }])
-
-    const updateData: any = {
-      stage: nuevoStage,
-      next_action_date: esFinal ? null : (fechaProxima ? new Date(fechaProxima).toISOString() : null),
-    }
-
-    if (nuevoStage === 'Visita' && fecha) {
-      updateData.visit_date = new Date(fecha).toISOString()
-    }
-
-    await supabase.from('opportunities').update(updateData).eq('id', opp.id)
-
-    if (esFinal) {
-      setOpps(prev => prev.filter(o => o.id !== opp.id))
+  const handleIniciarCaptacion = (opp: Opportunity) => {
+    if (opp.property_id) {
+      completarCaptacion({ opp, propiedadId: null, propiedadIdSeleccionada: '', captarModo: 'crear' })
     } else {
-      setOpps(prev => prev.map(o =>
-        o.id === opp.id ? { ...o, ...updateData } : o
-      ))
+      setCaptacionOpp(opp)
+      setCaptarModo('crear')
+      setPropiedadNombre('')
+      setPropiedadPrecio('')
+      setPropiedadDistrito('')
+      setPropiedadIdSeleccionada('')
+      setMostrarModalCaptacion(true)
     }
+  }
 
+  const handleCompletarCaptacion = async (nuevaPropiedadId: string | null) => {
+    if (!captacionOpp) return
+    
+    await completarCaptacion({ 
+      opp: captacionOpp, 
+      propiedadId: nuevaPropiedadId, 
+      propiedadIdSeleccionada: propiedadIdSeleccionada,
+      captarModo 
+    })
+    
+    setMostrarModalCaptacion(false)
+    setCaptacionOpp(null)
+  }
+
+  // ── Actualizar stage (UI handler) ───────────────────────────────────────────
+
+  const handleActualizarStage = async (opp: Opportunity, nuevoStage: string, fecha?: string) => {
+    await actualizarStage({ opp, nuevoStage, fecha, nota })
     setOppActiva(null)
     setNota('')
   }
@@ -174,7 +189,26 @@ function CRMApp({ userId }: { userId: string }) {
 
   const guardarAccion = async () => {
     if (!oppActiva || !fechaSeleccionada) return
-    await actualizarStage(oppActiva, eventoActivo, fechaSeleccionada)
+    await actualizarStage({ opp: oppActiva, nuevoStage: eventoActivo, fecha: fechaSeleccionada, nota })
+  }
+
+  const handleRegistrarActividad = async () => {
+    if (!actividadOpp || !tipoActividad || !resultadoActividad) return
+    
+    await registrarActividad({
+      opp: actividadOpp,
+      tipo: tipoActividad,
+      resultado: resultadoActividad,
+      nota: notaActividad,
+      fecha: fechaActividad,
+    })
+    
+    setMostrarModalActividad(false)
+    setActividadOpp(null)
+    setTipoActividad('call')
+    setResultadoActividad('')
+    setNotaActividad('')
+    setFechaActividad('')
   }
 
   // ── Filtros ─────────────────────────────────────────────────────────────────
@@ -188,7 +222,7 @@ function CRMApp({ userId }: { userId: string }) {
   const vencidosProps = propietarios.filter(estaVencido)
   const sinAccion = opps.filter(o => !o.next_action_date)
 
-  const ordenar = (arr: any[]) => [...arr].sort((a, b) => getScore(b) - getScore(a))
+  const ordenar = (arr: any[], activities: any[]) => [...arr].sort((a, b) => getScore(b, activities) - getScore(a, activities))
 
   // ── Acciones por stage ──────────────────────────────────────────────────────
 
@@ -213,19 +247,11 @@ function CRMApp({ userId }: { userId: string }) {
           <div style={rowStyle}>
             <BtnWA /><BtnCall />
             <button style={btnStyle('gray')} onClick={() => abrirProgramador(opp, 'Seguimiento')}>✓ Seguimiento</button>
-            <button style={btnStyle('red')} onClick={() => actualizarStage(opp, 'Descartado')}>✕</button>
-          </div>
-        )
-      case 'Seguimiento':
-        return (
-          <div style={rowStyle}>
-            <BtnWA /><BtnCall />
             <button style={btnStyle('purple')} onClick={() => abrirProgramador(opp, 'Visita')}>📅 Agendar visita</button>
-            <button style={btnStyle('gray')} onClick={() => abrirProgramador(opp, 'Seguimiento')}>↩ Reintentar</button>
-            <button style={btnStyle('red')} onClick={() => actualizarStage(opp, 'Descartado')}>✕</button>
+            <button style={btnStyle('red')} onClick={() => actualizarStage({ opp, nuevoStage: 'Perdido' })}>✕</button>
           </div>
         )
-case 'Visita':
+      case 'Visita':
         return (
           <div style={rowStyle}>
             {opp.visit_date && (
@@ -235,17 +261,17 @@ case 'Visita':
             )}
             <BtnWA />
             <button style={btnStyle('purple')} onClick={() => abrirProgramador(opp, 'Visita')}>📅 Reagendar</button>
-            <button style={btnStyle('green')} onClick={() => abrirProgramador(opp, 'Seguimiento post-visita')}>✅ Realizada</button>
-            <button style={btnStyle('gray')} onClick={() => actualizarStage(opp, 'Seguimiento')}>❌ No vino</button>
+            <button style={btnStyle('green')} onClick={() => abrirProgramador(opp, 'Seguimiento')}>✅ Realizada</button>
+            <button style={btnStyle('gray')} onClick={() => actualizarStage({ opp, nuevoStage: 'Interesado' })}>❌ No vino</button>
           </div>
         )
-      case 'Seguimiento post-visita':
+      case 'Seguimiento':
         return (
           <div style={rowStyle}>
             <BtnWA /><BtnCall />
-            <button style={btnStyle('green')} onClick={() => actualizarStage(opp, 'Cerrado')}>🎉 Cerrar</button>
-            <button style={btnStyle('gray')} onClick={() => abrirProgramador(opp, 'Seguimiento post-visita')}>⏳ Pendiente</button>
-            <button style={btnStyle('red')} onClick={() => actualizarStage(opp, 'Descartado')}>✕</button>
+            <button style={btnStyle('green')} onClick={() => actualizarStage({ opp, nuevoStage: 'Cerrado' })}>🎉 Cerrar</button>
+            <button style={btnStyle('gray')} onClick={() => abrirProgramador(opp, 'Seguimiento')}>⏳ Pendiente</button>
+            <button style={btnStyle('red')} onClick={() => actualizarStage({ opp, nuevoStage: 'Perdido' })}>✕</button>
           </div>
         )
       default:
@@ -273,27 +299,27 @@ case 'Visita':
         return (
           <div style={rowStyle}>
             <BtnWA /><BtnCall />
-            <button style={btnStyle('purple')} onClick={() => abrirProgramador(opp, 'Propuesta/Tasación')}>📊 Propuesta</button>
+            <button style={btnStyle('purple')} onClick={() => abrirProgramador(opp, 'Tasación')}>📊 Tasación</button>
             <button style={btnStyle('gray')} onClick={() => abrirProgramador(opp, 'Contactado')}>↩ Reintentar</button>
-            <button style={btnStyle('red')} onClick={() => actualizarStage(opp, 'Descartado')}>✕</button>
+            <button style={btnStyle('red')} onClick={() => actualizarStage({ opp, nuevoStage: 'No captado' })}>✕</button>
           </div>
         )
-      case 'Propuesta/Tasación':
+      case 'Tasación':
         return (
           <div style={rowStyle}>
             <BtnWA /><BtnCall />
             <button style={btnStyle('gray')} onClick={() => abrirProgramador(opp, 'Seguimiento')}>🔄 Seguimiento</button>
-            <button style={btnStyle('green')} onClick={() => actualizarStage(opp, 'Cerrado')}>🎉 Captado</button>
-            <button style={btnStyle('red')} onClick={() => actualizarStage(opp, 'Descartado')}>✕</button>
+            <button style={btnStyle('green')} onClick={() => handleIniciarCaptacion(opp)}>🎉 Captado</button>
+            <button style={btnStyle('red')} onClick={() => actualizarStage({ opp, nuevoStage: 'No captado' })}>✕</button>
           </div>
         )
       case 'Seguimiento':
         return (
           <div style={rowStyle}>
             <BtnWA /><BtnCall />
-            <button style={btnStyle('green')} onClick={() => actualizarStage(opp, 'Cerrado')}>🎉 Captado</button>
+            <button style={btnStyle('green')} onClick={() => handleIniciarCaptacion(opp)}>🎉 Captado</button>
             <button style={btnStyle('gray')} onClick={() => abrirProgramador(opp, 'Seguimiento')}>↩ Reintentar</button>
-            <button style={btnStyle('red')} onClick={() => actualizarStage(opp, 'Descartado')}>✕</button>
+            <button style={btnStyle('red')} onClick={() => actualizarStage({ opp, nuevoStage: 'No captado' })}>✕</button>
           </div>
         )
       default:
@@ -346,6 +372,21 @@ case 'Visita':
             : <AccionesLead opp={opp} />
           }
         </div>
+        <div style={{ marginTop: 6, borderTop: '1px solid #f1f5f9', paddingTop: 6 }}>
+          <button 
+            onClick={() => {
+              setActividadOpp(opp)
+              setMostrarModalActividad(true)
+              setTipoActividad('call')
+              setResultadoActividad('')
+              setNotaActividad('')
+              setFechaActividad('')
+            }}
+            style={{ background: 'none', border: 'none', color: '#3b82f6', fontSize: 12, cursor: 'pointer', padding: 0 }}
+          >
+            ➕ Registrar actividad
+          </button>
+        </div>
       </div>
     )
   }
@@ -389,7 +430,7 @@ case 'Visita':
         {accionHoyLeads.length > 0 && (
           <>
             <h3 style={secTitle}>👥 Compradores — Acción hoy ({accionHoyLeads.length})</h3>
-            {ordenar(accionHoyLeads).map(o => <OppCard key={o.id} opp={o} />)}
+            {ordenar(accionHoyLeads, activities).map(o => <OppCard key={o.id} opp={o} />)}
           </>
         )}
 
@@ -397,7 +438,7 @@ case 'Visita':
         {accionHoyProps.length > 0 && (
           <>
             <h3 style={secTitle}>🏠 Propietarios — Acción hoy ({accionHoyProps.length})</h3>
-            {ordenar(accionHoyProps).map(o => <OppCard key={o.id} opp={o} />)}
+            {ordenar(accionHoyProps, activities).map(o => <OppCard key={o.id} opp={o} />)}
           </>
         )}
 
@@ -417,7 +458,7 @@ case 'Visita':
   // ── Vista Leads ─────────────────────────────────────────────────────────────
 
   const VistaLeads = () => {
-    const porStage = STAGES_LEAD.filter(s => s !== 'Cerrado' && s !== 'Descartado')
+    const porStage = STAGES_LEAD.filter(s => s !== 'Cerrado' && s !== 'Perdido')
     return (
       <div>
         {porStage.map(stage => {
@@ -426,7 +467,7 @@ case 'Visita':
           return (
             <div key={stage} style={{ marginBottom: 16 }}>
               <h3 style={secTitle}>{STAGE_LABEL[stage] || stage} ({grupo.length})</h3>
-              {ordenar(grupo).map(o => <OppCard key={o.id} opp={o} />)}
+              {ordenar(grupo, activities).map(o => <OppCard key={o.id} opp={o} />)}
             </div>
           )
         })}
@@ -443,7 +484,7 @@ case 'Visita':
   // ── Vista Propietarios ──────────────────────────────────────────────────────
 
   const VistaPropietarios = () => {
-    const porStage = STAGES_PROPIETARIO.filter(s => s !== 'Cerrado' && s !== 'Descartado')
+    const porStage = STAGES_PROPIETARIO.filter(s => s !== 'Captado' && s !== 'No captado')
     return (
       <div>
         {porStage.map(stage => {
@@ -452,7 +493,7 @@ case 'Visita':
           return (
             <div key={stage} style={{ marginBottom: 16 }}>
               <h3 style={secTitle}>{STAGE_LABEL[stage] || stage} ({grupo.length})</h3>
-              {ordenar(grupo).map(o => <OppCard key={o.id} opp={o} />)}
+              {ordenar(grupo, activities).map(o => <OppCard key={o.id} opp={o} />)}
             </div>
           )
         })}
@@ -546,13 +587,13 @@ case 'Visita':
             style={inputStyle}
           >
             {(pipelineNuevo === 'lead' ? STAGES_LEAD : STAGES_PROPIETARIO)
-              .filter(s => s !== 'Cerrado' && s !== 'Descartado')
+              .filter(s => s !== 'Cerrado' && s !== 'Perdido' && s !== 'Captado' && s !== 'No captado')
               .map(s => (
                 <option key={s} value={s}>{s}</option>
               ))}
           </select>
           <div style={{ display: 'flex', gap: 6, marginTop: 4 }}>
-            <button onClick={crearOpp} style={{ ...btnStyle('blue'), flex: 1, padding: '10px 0' }}>
+            <button onClick={handleCrearOpp} style={{ ...btnStyle('blue'), flex: 1, padding: '10px 0' }}>
               Crear
             </button>
             <button onClick={() => setMostrarForm(false)} style={{ ...btnStyle('ghost'), padding: '10px 16px' }}>
@@ -641,6 +682,205 @@ case 'Visita':
           <button onClick={guardarAccion} style={{ ...btnStyle('blue'), width: '100%', padding: '12px 0', fontSize: 15 }}>
             Guardar
           </button>
+        </div>
+      )}
+
+      {/* Modal Actividad Manual */}
+      {mostrarModalActividad && actividadOpp && (
+        <div style={{
+          position: 'fixed', bottom: 0, left: 0, right: 0,
+          background: '#fff', borderTop: '2px solid #3b82f6',
+          padding: 16, zIndex: 200,
+          boxShadow: '0 -4px 20px rgba(0,0,0,0.15)'
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
+            <strong style={{ fontSize: 15 }}>
+              Nueva Actividad — {actividadOpp.contacts?.nombre}
+            </strong>
+            <button onClick={() => setMostrarModalActividad(false)} style={{ background: 'none', border: 'none', fontSize: 18, cursor: 'pointer' }}>✕</button>
+          </div>
+          
+          <div style={{ display: 'flex', gap: 6, marginBottom: 10, flexWrap: 'wrap' }}>
+            {TIPOS_ACTIVIDAD.map(t => (
+              <button
+                key={t.value}
+                onClick={() => setTipoActividad(t.value)}
+                style={{
+                  ...btnStyle(tipoActividad === t.value ? 'blue' : 'ghost'),
+                  padding: '6px 10px', fontSize: 12
+                }}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+          
+          <select
+            value={resultadoActividad}
+            onChange={e => setResultadoActividad(e.target.value)}
+            style={{ ...inputStyle, marginBottom: 8 }}
+          >
+            <option value="">Seleccionar resultado...</option>
+            {RESULTADOS.map(r => (
+              <option key={r.value} value={r.value}>{r.label}</option>
+            ))}
+          </select>
+          
+          <input
+            type="datetime-local"
+            value={fechaActividad}
+            onChange={e => setFechaActividad(e.target.value)}
+            step="300"
+            style={{ ...inputStyle, marginBottom: 8 }}
+            placeholder="Programar para más tarde (opcional)"
+          />
+          
+          <input
+            placeholder="Nota adicional (opcional)"
+            value={notaActividad}
+            onChange={e => setNotaActividad(e.target.value)}
+            style={{ ...inputStyle, marginBottom: 8 }}
+          />
+          
+          <button 
+            onClick={handleRegistrarActividad}
+            disabled={!tipoActividad || !resultadoActividad}
+            style={{ 
+              ...btnStyle('blue'), 
+              width: '100%', 
+              padding: '12px 0', 
+              fontSize: 15,
+              opacity: (!tipoActividad || !resultadoActividad) ? 0.5 : 1
+            }}
+          >
+            Registrar
+          </button>
+        </div>
+      )}
+
+      {/* Modal Captación Propietario */}
+      {mostrarModalCaptacion && captacionOpp && (
+        <div style={{
+          position: 'fixed', bottom: 0, left: 0, right: 0,
+          background: '#fff', borderTop: '2px solid #8b5cf6',
+          padding: 16, zIndex: 200,
+          boxShadow: '0 -4px 20px rgba(0,0,0,0.15)',
+          maxHeight: '80vh', overflowY: 'auto'
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
+            <strong style={{ fontSize: 15 }}>
+              Captar propietario — {captacionOpp.contacts?.nombre}
+            </strong>
+            <button onClick={() => setMostrarModalCaptacion(false)} style={{ background: 'none', border: 'none', fontSize: 18, cursor: 'pointer' }}>✕</button>
+          </div>
+          
+          <div style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
+            <button
+              onClick={() => setCaptarModo('crear')}
+              style={{ ...btnStyle(captarModo === 'crear' ? 'purple' : 'ghost'), flex: 1 }}
+            >
+              ➕ Crear propiedad
+            </button>
+            <button
+              onClick={() => setCaptarModo('vincular')}
+              style={{ ...btnStyle(captarModo === 'vincular' ? 'purple' : 'ghost'), flex: 1 }}
+            >
+              🔗 Vincular existente
+            </button>
+          </div>
+          
+          {captarModo === 'crear' ? (
+            <>
+              <input
+                placeholder="Nombre de la propiedad *"
+                value={propiedadNombre}
+                onChange={e => setPropiedadNombre(e.target.value)}
+                style={{ ...inputStyle, marginBottom: 8 }}
+              />
+              <input
+                placeholder="Precio (ej: 150000)"
+                value={propiedadPrecio}
+                onChange={e => setPropiedadPrecio(e.target.value)}
+                style={{ ...inputStyle, marginBottom: 8 }}
+                type="number"
+              />
+              <input
+                placeholder="Distrito *"
+                value={propiedadDistrito}
+                onChange={e => setPropiedadDistrito(e.target.value)}
+                style={{ ...inputStyle, marginBottom: 8 }}
+              />
+              <button 
+                onClick={async () => {
+                  if (!propiedadNombre || !propiedadDistrito) {
+                    alert('Nombre y distrito son obligatorios')
+                    return
+                  }
+                  const { data: nuevaProp } = await supabase.from('properties').insert([{
+                    nombre: propiedadNombre,
+                    precio: parseFloat(propiedadPrecio) || 0,
+                    distrito: propiedadDistrito,
+                    tipo: 'departamento',
+                    operacion: 'venta',
+                    estado: 'disponible',
+                    moneda: 'USD',
+                    user_id: userIdRef.current,
+                  }]).select().single()
+                  
+                  if (nuevaProp) {
+                    await handleCompletarCaptacion(nuevaProp.id)
+                  }
+                }}
+                disabled={!propiedadNombre || !propiedadDistrito}
+                style={{ 
+                  ...btnStyle('purple'), 
+                  width: '100%', 
+                  padding: '12px 0', 
+                  fontSize: 15,
+                  opacity: (!propiedadNombre || !propiedadDistrito) ? 0.5 : 1
+                }}
+              >
+                Crear y captar
+              </button>
+            </>
+          ) : (
+            <>
+              <select
+                value={propiedadIdSeleccionada}
+                onChange={e => setPropiedadIdSeleccionada(e.target.value)}
+                style={{ ...inputStyle, marginBottom: 8 }}
+              >
+                <option value="">Seleccionar propiedad...</option>
+                {properties.filter(p => !p.propietario_id).map(p => (
+                  <option key={p.id} value={p.id}>{p.nombre} — {p.distrito}</option>
+                ))}
+              </select>
+              <button 
+                onClick={async () => {
+                  if (!propiedadIdSeleccionada) {
+                    alert('Selecciona una propiedad')
+                    return
+                  }
+                  await handleCompletarCaptacion(propiedadIdSeleccionada)
+                }}
+                disabled={!propiedadIdSeleccionada}
+                style={{ 
+                  ...btnStyle('purple'), 
+                  width: '100%', 
+                  padding: '12px 0', 
+                  fontSize: 15,
+                  opacity: !propiedadIdSeleccionada ? 0.5 : 1
+                }}
+              >
+                Vincular y captar
+              </button>
+              {properties.filter(p => !p.propietario_id).length === 0 && (
+                <p style={{ fontSize: 12, color: '#64748b', textAlign: 'center', marginTop: 8 }}>
+                  No hay propiedades disponibles para vincular
+                </p>
+              )}
+            </>
+          )}
         </div>
       )}
     </div>

@@ -15,6 +15,8 @@ export type Opportunity = {
   pipeline_type?: 'lead' | 'propietario'
   next_action_date?: string
   visit_date?: string
+  property_id?: string | null
+  contact_id?: string
   contacts?: Contact
   properties?: Property
 }

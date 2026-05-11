@@ -21,8 +21,8 @@ export const getTipoMensaje = (opp: any): string => {
     return opp.stage === 'Contactado' ? 'propietario_contacto' : 'propietario_seguimiento'
   }
   const m: Record<string, string> = {
-    'Interesado': 'primer_contacto',
-    'Seguimiento': 'seguimiento',
+    'Contactado': 'primer_contacto',
+    'Interesado': 'seguimiento',
     'Visita': 'confirmar_visita',
     'Seguimiento post-visita': 'post_visita',
   }
