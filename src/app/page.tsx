@@ -37,13 +37,13 @@ function CRMApp({ userId }: { userId: string }) {
   // Hooks
   const { 
     opps, properties, activities, loading, 
-    cargarOpps, crearOpp, actualizarStage, completarCaptacion 
+    cargarOpps, cargarActivities, crearOpp, actualizarStage, completarCaptacion, getOppWithPendingActivities 
   } = useOpportunities(userIdRef.current)
 
   const { 
     timeline, timelineOpen, selectedOpp, loading: timelineLoading,
     cargarTimeline, abrirTimeline, cerrarTimeline, registrarActividad 
-  } = useTimeline()
+  } = useTimeline(cargarActivities)
 
   // Form crear
   const [nombre, setNombre] = useState('')
@@ -216,13 +216,43 @@ function CRMApp({ userId }: { userId: string }) {
   const leads = opps.filter(o => (o.pipeline_type || 'lead') === 'lead')
   const propietarios = opps.filter(o => o.pipeline_type === 'propietario')
 
+  const oppsWithActivities = getOppWithPendingActivities(opps, activities)
+  const oppsLeadsWithActs = getOppWithPendingActivities(leads, activities)
+  const oppsPropsWithActs = getOppWithPendingActivities(propietarios, activities)
+
+  // DEBUG: Ver estado de activities
+  console.log('Total activities:', activities.length)
+  console.log('Activities pending:', activities.filter(a => a.status === 'pending').length)
+  console.log('Opp con pending:', oppsWithActivities.filter(o => o.hasPending).length)
+
+  const accionUrgenteLeads = oppsLeadsWithActs.filter(o => 
+    o.activitiesOverdue?.length > 0 || 
+    o.activitiesToday?.length > 0 ||
+    o.activitiesSinFecha?.length > 0
+  )
+  const accionUrgenteProps = oppsPropsWithActs.filter(o => 
+    o.activitiesOverdue?.length > 0 || 
+    o.activitiesToday?.length > 0 ||
+    o.activitiesSinFecha?.length > 0
+  )
+  const accionProximaLeads = oppsLeadsWithActs.filter(o => 
+    o.activitiesUpcoming?.length > 0 && 
+    o.activitiesOverdue?.length === 0 &&
+    o.activitiesSinFecha?.length === 0
+  )
+  const accionProximaProps = oppsPropsWithActs.filter(o => 
+    o.activitiesUpcoming?.length > 0 && 
+    o.activitiesOverdue?.length === 0 &&
+    o.activitiesSinFecha?.length === 0
+  )
+
   const accionHoyLeads = leads.filter(estaHoy)
   const accionHoyProps = propietarios.filter(estaHoy)
   const vencidosLeads = leads.filter(estaVencido)
   const vencidosProps = propietarios.filter(estaVencido)
   const sinAccion = opps.filter(o => !o.next_action_date)
 
-  const ordenar = (arr: any[], activities: any[]) => [...arr].sort((a, b) => getScore(b, activities) - getScore(a, activities))
+  const ordenar = (arr: any[], activitiesData: any[]) => [...arr].sort((a, b) => getScore(b, activitiesData) - getScore(a, activitiesData))
 
   // ── Acciones por stage ──────────────────────────────────────────────────────
 
@@ -346,6 +376,11 @@ function CRMApp({ userId }: { userId: string }) {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div>
             <strong style={{ fontSize: 14 }}>{opp.contacts?.nombre}</strong>
+            {opp.status && opp.status !== 'active' && (
+              <span style={{ fontSize: 10, marginLeft: 6, color: opp.status === 'paused' ? '#f59e0b' : '#94a3b8' }}>
+                {opp.status === 'paused' ? '⏸️' : opp.status === 'won' ? '✅' : opp.status === 'lost' ? '❌' : opp.status}
+              </span>
+            )}
             {!esProp && opp.properties && (
               <span style={{ fontSize: 12, color: '#64748b', marginLeft: 8 }}>
                 {opp.properties?.nombre} · {opp.properties?.precio}
@@ -394,8 +429,8 @@ function CRMApp({ userId }: { userId: string }) {
   // ── Vista HOY ───────────────────────────────────────────────────────────────
 
   const VistaHoy = () => {
-    const totalHoy = accionHoyLeads.length + accionHoyProps.length
-    const totalVencidos = vencidosLeads.length + vencidosProps.length
+    const totalUrgente = accionUrgenteLeads.length + accionUrgenteProps.length
+    const totalVencidos = accionUrgenteLeads.filter(o => o.activitiesOverdue?.length > 0).length + accionUrgenteProps.filter(o => o.activitiesOverdue?.length > 0).length
 
     return (
       <div>
@@ -405,7 +440,7 @@ function CRMApp({ userId }: { userId: string }) {
           gap: 8, marginBottom: 16
         }}>
           {[
-            { label: 'Acción hoy', val: totalHoy, color: totalHoy > 0 ? '#ef4444' : '#22c55e', icon: '🔥' },
+            { label: 'Acción hoy', val: totalUrgente, color: totalUrgente > 0 ? '#ef4444' : '#22c55e', icon: '🔥' },
             { label: 'Vencidos', val: totalVencidos, color: totalVencidos > 0 ? '#f97316' : '#94a3b8', icon: '⚠️' },
             { label: 'Propietarios', val: propietarios.length, color: '#8b5cf6', icon: '🏠' },
             { label: 'Compradores', val: leads.length, color: '#3b82f6', icon: '👥' },
@@ -420,34 +455,36 @@ function CRMApp({ userId }: { userId: string }) {
           ))}
         </div>
 
-        {sinAccion.length > 0 && (
-          <div style={{ background: '#1e1e2e', color: '#facc15', padding: '8px 12px', borderRadius: 6, marginBottom: 12, fontSize: 13 }}>
-            ⚠️ {sinAccion.length} contacto{sinAccion.length > 1 ? 's' : ''} sin fecha de seguimiento
+        {/* Compradores urgentes */}
+        {accionUrgenteLeads.length > 0 && (
+          <>
+            <h3 style={secTitle}>👥 Compradores — Requiere acción ({accionUrgenteLeads.length})</h3>
+            {ordenar(accionUrgenteLeads, activities).map(o => <OppCard key={o.id} opp={o} />)}
+          </>
+        )}
+
+        {/* Propietarios urgentes */}
+        {accionUrgenteProps.length > 0 && (
+          <>
+            <h3 style={secTitle}>🏠 Propietarios — Requiere acción ({accionUrgenteProps.length})</h3>
+            {ordenar(accionUrgenteProps, activities).map(o => <OppCard key={o.id} opp={o} />)}
+          </>
+        )}
+
+        {/* Próximos */}
+        {(accionProximaLeads.length > 0 || accionProximaProps.length > 0) && (
+          <div style={{ marginTop: 16 }}>
+            <h3 style={secTitle}>📅 Próximos ({accionProximaLeads.length + accionProximaProps.length})</h3>
+            {ordenar([...accionProximaLeads, ...accionProximaProps], activities).map(o => <OppCard key={o.id} opp={o} />)}
           </div>
         )}
 
-        {/* Compradores hoy */}
-        {accionHoyLeads.length > 0 && (
-          <>
-            <h3 style={secTitle}>👥 Compradores — Acción hoy ({accionHoyLeads.length})</h3>
-            {ordenar(accionHoyLeads, activities).map(o => <OppCard key={o.id} opp={o} />)}
-          </>
-        )}
-
-        {/* Propietarios hoy */}
-        {accionHoyProps.length > 0 && (
-          <>
-            <h3 style={secTitle}>🏠 Propietarios — Acción hoy ({accionHoyProps.length})</h3>
-            {ordenar(accionHoyProps, activities).map(o => <OppCard key={o.id} opp={o} />)}
-          </>
-        )}
-
-        {totalHoy === 0 && (
+        {totalUrgente === 0 && (
           <div style={{ textAlign: 'center', padding: '40px 0', color: '#94a3b8' }}>
             <div style={{ fontSize: 32 }}>✅</div>
             <p style={{ marginTop: 8 }}>Sin acciones pendientes para hoy</p>
             {(leads.length + propietarios.length) > 0 && (
-              <p style={{ fontSize: 13 }}>Tienes {leads.length + propietarios.length} contactos programados para más adelante</p>
+              <p style={{ fontSize: 13 }}>Tienes {leads.length + propietarios.length} contactos en seguimiento</p>
             )}
           </div>
         )}
@@ -610,7 +647,7 @@ function CRMApp({ userId }: { userId: string }) {
         position: 'sticky', top: 52, zIndex: 99
       }}>
         {([
-          { key: 'hoy', label: '🔥 Hoy', badge: accionHoyLeads.length + accionHoyProps.length },
+          { key: 'hoy', label: '🔥 Hoy', badge: accionUrgenteLeads.length + accionUrgenteProps.length },
           { key: 'leads', label: '👥 Compradores', badge: leads.length },
           { key: 'propietarios', label: '🏠 Propietarios', badge: propietarios.length },
         ] as { key: Vista; label: string; badge: number }[]).map(tab => (

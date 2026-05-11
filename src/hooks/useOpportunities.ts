@@ -28,10 +28,23 @@ export const useOpportunities = (userId: string) => {
   }
 
   const cargarActivities = async () => {
+    const { data: opps } = await supabase
+      .from('opportunities')
+      .select('id')
+      .eq('user_id', userId)
+    
+    if (!opps || opps.length === 0) {
+      setActivities([])
+      return
+    }
+    
+    const oppIds = opps.map(o => o.id)
+    
     const { data } = await supabase
       .from('activities')
       .select('*')
-      .eq('user_id', userId)
+      .in('opportunity_id', oppIds)
+    
     if (data) setActivities(data)
   }
 
@@ -200,6 +213,45 @@ export const useOpportunities = (userId: string) => {
     await cargarProperties()
   }
 
+  const getOppWithPendingActivities = (oppsData: any[], activitiesData: any[]) => {
+    if (!activitiesData || activitiesData.length === 0) return oppsData.map(o => ({ ...o, hasPending: false }))
+    
+    const now = new Date()
+    const startOfToday = new Date(now)
+    startOfToday.setHours(0, 0, 0, 0)
+    const endOfToday = new Date(now)
+    endOfToday.setHours(23, 59, 59, 999)
+    
+    return oppsData.map(opp => {
+      // Todas las actividades pending (con o sin scheduled_at)
+      const allPending = activitiesData.filter(a => 
+        a.opportunity_id === opp.id && a.status === 'pending'
+      )
+      
+      // Las que tienen fecha programada
+      const withSchedule = allPending.filter(a => a.scheduled_at)
+      
+      const overdue = withSchedule.filter(a => new Date(a.scheduled_at) < startOfToday)
+      const today = withSchedule.filter(a => {
+        const s = new Date(a.scheduled_at)
+        return s >= startOfToday && s <= endOfToday
+      })
+      const upcoming = withSchedule.filter(a => new Date(a.scheduled_at) > endOfToday)
+      
+      // Las que no tienen fecha - son para hacer ahora
+      const sinFecha = allPending.filter(a => !a.scheduled_at)
+      
+      return {
+        ...opp,
+        activitiesOverdue: overdue,
+        activitiesToday: today,
+        activitiesUpcoming: upcoming,
+        activitiesSinFecha: sinFecha,
+        hasPending: allPending.length > 0
+      }
+    })
+  }
+
   return {
     opps,
     properties,
@@ -210,5 +262,6 @@ export const useOpportunities = (userId: string) => {
     crearOpp,
     actualizarStage,
     completarCaptacion,
+    getOppWithPendingActivities,
   }
 }

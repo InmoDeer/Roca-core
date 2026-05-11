@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { supabase } from '../lib/supabase'
 
-export const useTimeline = () => {
+export const useTimeline = (onActivityCreated?: () => void) => {
   const [timeline, setTimeline] = useState<any[]>([])
   const [timelineOpen, setTimelineOpen] = useState(false)
   const [selectedOpp, setSelectedOpp] = useState<any>(null)
@@ -72,6 +72,10 @@ export const useTimeline = () => {
     
     if (selectedOpp?.id === opp.id) {
       cargarTimeline(opp.id)
+    }
+    
+    if (onActivityCreated) {
+      onActivityCreated()
     }
   }
 
