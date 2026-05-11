@@ -42,3 +42,7 @@ next-env.d.ts
 
 # local data
 /data/db-schema.json
+
+# opencode agents
+.agents/
+skills-lock.json

@@ -220,11 +220,6 @@ function CRMApp({ userId }: { userId: string }) {
   const oppsLeadsWithActs = getOppWithPendingActivities(leads, activities)
   const oppsPropsWithActs = getOppWithPendingActivities(propietarios, activities)
 
-  // DEBUG: Ver estado de activities
-  console.log('Total activities:', activities.length)
-  console.log('Activities pending:', activities.filter(a => a.status === 'pending').length)
-  console.log('Opp con pending:', oppsWithActivities.filter(o => o.hasPending).length)
-
   const accionUrgenteLeads = oppsLeadsWithActs.filter(o => 
     o.activitiesOverdue?.length > 0 || 
     o.activitiesToday?.length > 0 ||
