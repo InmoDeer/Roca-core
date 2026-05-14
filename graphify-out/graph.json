@@ -1,0 +1,2564 @@
+{
+  "directed": false,
+  "multigraph": false,
+  "graph": {},
+  "nodes": [
+    {
+      "label": "next.config.ts",
+      "file_type": "code",
+      "source_file": "next.config.ts",
+      "source_location": "L1",
+      "id": "next_config_ts",
+      "community": 10,
+      "norm_label": "next.config.ts"
+    },
+    {
+      "label": "nextConfig",
+      "file_type": "code",
+      "source_file": "next.config.ts",
+      "source_location": "L3",
+      "id": "roca_core_next_config_nextconfig",
+      "community": 10,
+      "norm_label": "nextconfig"
+    },
+    {
+      "label": "eslint.config.mjs",
+      "file_type": "code",
+      "source_file": "eslint.config.mjs",
+      "source_location": "L1",
+      "id": "eslint_config_mjs",
+      "community": 11,
+      "norm_label": "eslint.config.mjs"
+    },
+    {
+      "label": "eslintConfig",
+      "file_type": "code",
+      "source_file": "eslint.config.mjs",
+      "source_location": "L5",
+      "id": "roca_core_eslint_config_eslintconfig",
+      "community": 11,
+      "norm_label": "eslintconfig"
+    },
+    {
+      "label": "postcss.config.mjs",
+      "file_type": "code",
+      "source_file": "postcss.config.mjs",
+      "source_location": "L1",
+      "id": "postcss_config_mjs",
+      "community": 12,
+      "norm_label": "postcss.config.mjs"
+    },
+    {
+      "label": "config",
+      "file_type": "code",
+      "source_file": "postcss.config.mjs",
+      "source_location": "L1",
+      "id": "roca_core_postcss_config_config",
+      "community": 12,
+      "norm_label": "config"
+    },
+    {
+      "label": "next-env.d.ts",
+      "file_type": "code",
+      "source_file": "next-env.d.ts",
+      "source_location": "L1",
+      "id": "next_env_d_ts",
+      "community": 13,
+      "norm_label": "next-env.d.ts"
+    },
+    {
+      "label": "generate-db-schema.js",
+      "file_type": "code",
+      "source_file": "scripts/generate-db-schema.js",
+      "source_location": "L1",
+      "id": "scripts_generate_db_schema_js",
+      "community": 6,
+      "norm_label": "generate-db-schema.js"
+    },
+    {
+      "label": "path",
+      "file_type": "code",
+      "source_file": "scripts/generate-db-schema.js",
+      "source_location": "L10",
+      "id": "scripts_generate_db_schema_path",
+      "community": 6,
+      "norm_label": "path"
+    },
+    {
+      "label": "{ createClient }",
+      "file_type": "code",
+      "source_file": "scripts/generate-db-schema.js",
+      "source_location": "L13",
+      "id": "scripts_generate_db_schema_createclient",
+      "community": 6,
+      "norm_label": "{ createclient }"
+    },
+    {
+      "label": "fs",
+      "file_type": "code",
+      "source_file": "scripts/generate-db-schema.js",
+      "source_location": "L14",
+      "id": "scripts_generate_db_schema_fs",
+      "community": 6,
+      "norm_label": "fs"
+    },
+    {
+      "label": "supabase",
+      "file_type": "code",
+      "source_file": "scripts/generate-db-schema.js",
+      "source_location": "L25",
+      "id": "scripts_generate_db_schema_supabase",
+      "community": 6,
+      "norm_label": "supabase"
+    },
+    {
+      "label": "tables",
+      "file_type": "code",
+      "source_file": "scripts/generate-db-schema.js",
+      "source_location": "L27",
+      "id": "scripts_generate_db_schema_tables",
+      "community": 6,
+      "norm_label": "tables"
+    },
+    {
+      "label": "mapPostgresType()",
+      "file_type": "code",
+      "source_file": "scripts/generate-db-schema.js",
+      "source_location": "L29",
+      "id": "scripts_generate_db_schema_mappostgrestype",
+      "community": 6,
+      "norm_label": "mappostgrestype()"
+    },
+    {
+      "label": "generateSchema()",
+      "file_type": "code",
+      "source_file": "scripts/generate-db-schema.js",
+      "source_location": "L53",
+      "id": "scripts_generate_db_schema_generateschema",
+      "community": 6,
+      "norm_label": "generateschema()"
+    },
+    {
+      "label": "auth.ts",
+      "file_type": "code",
+      "source_file": "src/lib/auth.ts",
+      "source_location": "L1",
+      "id": "src_lib_auth_ts",
+      "community": 3,
+      "norm_label": "auth.ts"
+    },
+    {
+      "label": "getUser()",
+      "file_type": "code",
+      "source_file": "src/lib/auth.ts",
+      "source_location": "L3",
+      "id": "lib_auth_getuser",
+      "community": 3,
+      "norm_label": "getuser()"
+    },
+    {
+      "label": "signInWithEmail()",
+      "file_type": "code",
+      "source_file": "src/lib/auth.ts",
+      "source_location": "L8",
+      "id": "lib_auth_signinwithemail",
+      "community": 3,
+      "norm_label": "signinwithemail()"
+    },
+    {
+      "label": "signOut()",
+      "file_type": "code",
+      "source_file": "src/lib/auth.ts",
+      "source_location": "L12",
+      "id": "lib_auth_signout",
+      "community": 3,
+      "norm_label": "signout()"
+    },
+    {
+      "label": "supabase.ts",
+      "file_type": "code",
+      "source_file": "src/lib/supabase.ts",
+      "source_location": "L1",
+      "id": "src_lib_supabase_ts",
+      "community": 3,
+      "norm_label": "supabase.ts"
+    },
+    {
+      "label": "supabase",
+      "file_type": "code",
+      "source_file": "src/lib/supabase.ts",
+      "source_location": "L4",
+      "id": "lib_supabase_supabase",
+      "community": 3,
+      "norm_label": "supabase"
+    },
+    {
+      "label": "types.ts",
+      "file_type": "code",
+      "source_file": "src/lib/crm/types.ts",
+      "source_location": "L1",
+      "id": "src_lib_crm_types_ts",
+      "community": 0,
+      "norm_label": "types.ts"
+    },
+    {
+      "label": "Contact",
+      "file_type": "code",
+      "source_file": "src/lib/crm/types.ts",
+      "source_location": "L1",
+      "id": "crm_types_contact",
+      "community": 0,
+      "norm_label": "contact"
+    },
+    {
+      "label": "Property",
+      "file_type": "code",
+      "source_file": "src/lib/crm/types.ts",
+      "source_location": "L6",
+      "id": "crm_types_property",
+      "community": 0,
+      "norm_label": "property"
+    },
+    {
+      "label": "Opportunity",
+      "file_type": "code",
+      "source_file": "src/lib/crm/types.ts",
+      "source_location": "L12",
+      "id": "crm_types_opportunity",
+      "community": 0,
+      "norm_label": "opportunity"
+    },
+    {
+      "label": "dates.ts",
+      "file_type": "code",
+      "source_file": "src/lib/crm/dates.ts",
+      "source_location": "L1",
+      "id": "src_lib_crm_dates_ts",
+      "community": 0,
+      "norm_label": "dates.ts"
+    },
+    {
+      "label": "getFecha()",
+      "file_type": "code",
+      "source_file": "src/lib/crm/dates.ts",
+      "source_location": "L3",
+      "id": "crm_dates_getfecha",
+      "community": 0,
+      "norm_label": "getfecha()"
+    },
+    {
+      "label": "estaVencido()",
+      "file_type": "code",
+      "source_file": "src/lib/crm/dates.ts",
+      "source_location": "L9",
+      "id": "crm_dates_estavencido",
+      "community": 0,
+      "norm_label": "estavencido()"
+    },
+    {
+      "label": "estaHoy()",
+      "file_type": "code",
+      "source_file": "src/lib/crm/dates.ts",
+      "source_location": "L12",
+      "id": "crm_dates_estahoy",
+      "community": 0,
+      "norm_label": "estahoy()"
+    },
+    {
+      "label": "getPendingActivities()",
+      "file_type": "code",
+      "source_file": "src/lib/crm/dates.ts",
+      "source_location": "L19",
+      "id": "crm_dates_getpendingactivities",
+      "community": 0,
+      "norm_label": "getpendingactivities()"
+    },
+    {
+      "label": "scoring.ts",
+      "file_type": "code",
+      "source_file": "src/lib/crm/scoring.ts",
+      "source_location": "L1",
+      "id": "src_lib_crm_scoring_ts",
+      "community": 4,
+      "norm_label": "scoring.ts"
+    },
+    {
+      "label": "stageScores",
+      "file_type": "code",
+      "source_file": "src/lib/crm/scoring.ts",
+      "source_location": "L1",
+      "id": "crm_scoring_stagescores",
+      "community": 4,
+      "norm_label": "stagescores"
+    },
+    {
+      "label": "getLastActivity()",
+      "file_type": "code",
+      "source_file": "src/lib/crm/scoring.ts",
+      "source_location": "L13",
+      "id": "crm_scoring_getlastactivity",
+      "community": 4,
+      "norm_label": "getlastactivity()"
+    },
+    {
+      "label": "getPendingActivities()",
+      "file_type": "code",
+      "source_file": "src/lib/crm/scoring.ts",
+      "source_location": "L22",
+      "id": "crm_scoring_getpendingactivities",
+      "community": 4,
+      "norm_label": "getpendingactivities()"
+    },
+    {
+      "label": "getOverdueActivities()",
+      "file_type": "code",
+      "source_file": "src/lib/crm/scoring.ts",
+      "source_location": "L31",
+      "id": "crm_scoring_getoverdueactivities",
+      "community": 4,
+      "norm_label": "getoverdueactivities()"
+    },
+    {
+      "label": "getUpcomingVisits()",
+      "file_type": "code",
+      "source_file": "src/lib/crm/scoring.ts",
+      "source_location": "L42",
+      "id": "crm_scoring_getupcomingvisits",
+      "community": 4,
+      "norm_label": "getupcomingvisits()"
+    },
+    {
+      "label": "getDaysSinceLastActivity()",
+      "file_type": "code",
+      "source_file": "src/lib/crm/scoring.ts",
+      "source_location": "L50",
+      "id": "crm_scoring_getdayssincelastactivity",
+      "community": 4,
+      "norm_label": "getdayssincelastactivity()"
+    },
+    {
+      "label": "isVisitToday()",
+      "file_type": "code",
+      "source_file": "src/lib/crm/scoring.ts",
+      "source_location": "L57",
+      "id": "crm_scoring_isvisittoday",
+      "community": 4,
+      "norm_label": "isvisittoday()"
+    },
+    {
+      "label": "getScore()",
+      "file_type": "code",
+      "source_file": "src/lib/crm/scoring.ts",
+      "source_location": "L64",
+      "id": "crm_scoring_getscore",
+      "community": 4,
+      "norm_label": "getscore()"
+    },
+    {
+      "label": "getCalor()",
+      "file_type": "code",
+      "source_file": "src/lib/crm/scoring.ts",
+      "source_location": "L121",
+      "id": "crm_scoring_getcalor",
+      "community": 4,
+      "norm_label": "getcalor()"
+    },
+    {
+      "label": "stages.ts",
+      "file_type": "code",
+      "source_file": "src/lib/crm/stages.ts",
+      "source_location": "L1",
+      "id": "src_lib_crm_stages_ts",
+      "community": 0,
+      "norm_label": "stages.ts"
+    },
+    {
+      "label": "STAGES_LEAD",
+      "file_type": "code",
+      "source_file": "src/lib/crm/stages.ts",
+      "source_location": "L1",
+      "id": "crm_stages_stages_lead",
+      "community": 0,
+      "norm_label": "stages_lead"
+    },
+    {
+      "label": "STAGES_PROPIETARIO",
+      "file_type": "code",
+      "source_file": "src/lib/crm/stages.ts",
+      "source_location": "L10",
+      "id": "crm_stages_stages_propietario",
+      "community": 0,
+      "norm_label": "stages_propietario"
+    },
+    {
+      "label": "STAGE_LABEL",
+      "file_type": "code",
+      "source_file": "src/lib/crm/stages.ts",
+      "source_location": "L18",
+      "id": "crm_stages_stage_label",
+      "community": 0,
+      "norm_label": "stage_label"
+    },
+    {
+      "label": "styles.ts",
+      "file_type": "code",
+      "source_file": "src/lib/crm/styles.ts",
+      "source_location": "L1",
+      "id": "src_lib_crm_styles_ts",
+      "community": 1,
+      "norm_label": "styles.ts"
+    },
+    {
+      "label": "COLORS",
+      "file_type": "code",
+      "source_file": "src/lib/crm/styles.ts",
+      "source_location": "L5",
+      "id": "crm_styles_colors",
+      "community": 1,
+      "norm_label": "colors"
+    },
+    {
+      "label": "inputStyle",
+      "file_type": "code",
+      "source_file": "src/lib/crm/styles.ts",
+      "source_location": "L44",
+      "id": "crm_styles_inputstyle",
+      "community": 1,
+      "norm_label": "inputstyle"
+    },
+    {
+      "label": "secTitle",
+      "file_type": "code",
+      "source_file": "src/lib/crm/styles.ts",
+      "source_location": "L56",
+      "id": "crm_styles_sectitle",
+      "community": 1,
+      "norm_label": "sectitle"
+    },
+    {
+      "label": "rowStyle",
+      "file_type": "code",
+      "source_file": "src/lib/crm/styles.ts",
+      "source_location": "L66",
+      "id": "crm_styles_rowstyle",
+      "community": 1,
+      "norm_label": "rowstyle"
+    },
+    {
+      "label": "ButtonVariant",
+      "file_type": "code",
+      "source_file": "src/lib/crm/styles.ts",
+      "source_location": "L77",
+      "id": "crm_styles_buttonvariant",
+      "community": 1,
+      "norm_label": "buttonvariant"
+    },
+    {
+      "label": "buttonColors",
+      "file_type": "code",
+      "source_file": "src/lib/crm/styles.ts",
+      "source_location": "L79",
+      "id": "crm_styles_buttoncolors",
+      "community": 1,
+      "norm_label": "buttoncolors"
+    },
+    {
+      "label": "btnStyle()",
+      "file_type": "code",
+      "source_file": "src/lib/crm/styles.ts",
+      "source_location": "L88",
+      "id": "crm_styles_btnstyle",
+      "community": 1,
+      "norm_label": "btnstyle()"
+    },
+    {
+      "label": "getCardStyle()",
+      "file_type": "code",
+      "source_file": "src/lib/crm/styles.ts",
+      "source_location": "L105",
+      "id": "crm_styles_getcardstyle",
+      "community": 1,
+      "norm_label": "getcardstyle()"
+    },
+    {
+      "label": "getHeaderStyle()",
+      "file_type": "code",
+      "source_file": "src/lib/crm/styles.ts",
+      "source_location": "L115",
+      "id": "crm_styles_getheaderstyle",
+      "community": 1,
+      "norm_label": "getheaderstyle()"
+    },
+    {
+      "label": "getTabsStyle()",
+      "file_type": "code",
+      "source_file": "src/lib/crm/styles.ts",
+      "source_location": "L129",
+      "id": "crm_styles_gettabsstyle",
+      "community": 1,
+      "norm_label": "gettabsstyle()"
+    },
+    {
+      "label": "getTabStyle()",
+      "file_type": "code",
+      "source_file": "src/lib/crm/styles.ts",
+      "source_location": "L140",
+      "id": "crm_styles_gettabstyle",
+      "community": 1,
+      "norm_label": "gettabstyle()"
+    },
+    {
+      "label": "getBadgeStyle()",
+      "file_type": "code",
+      "source_file": "src/lib/crm/styles.ts",
+      "source_location": "L154",
+      "id": "crm_styles_getbadgestyle",
+      "community": 1,
+      "norm_label": "getbadgestyle()"
+    },
+    {
+      "label": "getStatsCardStyle()",
+      "file_type": "code",
+      "source_file": "src/lib/crm/styles.ts",
+      "source_location": "L165",
+      "id": "crm_styles_getstatscardstyle",
+      "community": 1,
+      "norm_label": "getstatscardstyle()"
+    },
+    {
+      "label": "contentStyle",
+      "file_type": "code",
+      "source_file": "src/lib/crm/styles.ts",
+      "source_location": "L175",
+      "id": "crm_styles_contentstyle",
+      "community": 1,
+      "norm_label": "contentstyle"
+    },
+    {
+      "label": "emptyStateStyle",
+      "file_type": "code",
+      "source_file": "src/lib/crm/styles.ts",
+      "source_location": "L181",
+      "id": "crm_styles_emptystatestyle",
+      "community": 1,
+      "norm_label": "emptystatestyle"
+    },
+    {
+      "label": "messages.ts",
+      "file_type": "code",
+      "source_file": "src/lib/crm/messages.ts",
+      "source_location": "L1",
+      "id": "src_lib_crm_messages_ts",
+      "community": 0,
+      "norm_label": "messages.ts"
+    },
+    {
+      "label": "getMensaje()",
+      "file_type": "code",
+      "source_file": "src/lib/crm/messages.ts",
+      "source_location": "L1",
+      "id": "crm_messages_getmensaje",
+      "community": 0,
+      "norm_label": "getmensaje()"
+    },
+    {
+      "label": "getTipoMensaje()",
+      "file_type": "code",
+      "source_file": "src/lib/crm/messages.ts",
+      "source_location": "L19",
+      "id": "crm_messages_gettipomensaje",
+      "community": 0,
+      "norm_label": "gettipomensaje()"
+    },
+    {
+      "label": "AuthGate.tsx",
+      "file_type": "code",
+      "source_file": "src/components/AuthGate.tsx",
+      "source_location": "L1",
+      "id": "src_components_authgate_tsx",
+      "community": 3,
+      "norm_label": "authgate.tsx"
+    },
+    {
+      "label": "AuthGate()",
+      "file_type": "code",
+      "source_file": "src/components/AuthGate.tsx",
+      "source_location": "L7",
+      "id": "components_authgate_authgate",
+      "community": 3,
+      "norm_label": "authgate()"
+    },
+    {
+      "label": "inputStyle",
+      "file_type": "code",
+      "source_file": "src/components/AuthGate.tsx",
+      "source_location": "L61",
+      "id": "components_authgate_inputstyle",
+      "community": 3,
+      "norm_label": "inputstyle"
+    },
+    {
+      "label": "btnStyle",
+      "file_type": "code",
+      "source_file": "src/components/AuthGate.tsx",
+      "source_location": "L66",
+      "id": "components_authgate_btnstyle",
+      "community": 3,
+      "norm_label": "btnstyle"
+    },
+    {
+      "label": "useTimeline.ts",
+      "file_type": "code",
+      "source_file": "src/hooks/useTimeline.ts",
+      "source_location": "L1",
+      "id": "src_hooks_usetimeline_ts",
+      "community": 3,
+      "norm_label": "usetimeline.ts"
+    },
+    {
+      "label": "useTimeline()",
+      "file_type": "code",
+      "source_file": "src/hooks/useTimeline.ts",
+      "source_location": "L6",
+      "id": "hooks_usetimeline_usetimeline",
+      "community": 0,
+      "norm_label": "usetimeline()"
+    },
+    {
+      "label": "useOpportunities.ts",
+      "file_type": "code",
+      "source_file": "src/hooks/useOpportunities.ts",
+      "source_location": "L1",
+      "id": "src_hooks_useopportunities_ts",
+      "community": 3,
+      "norm_label": "useopportunities.ts"
+    },
+    {
+      "label": "useOpportunities()",
+      "file_type": "code",
+      "source_file": "src/hooks/useOpportunities.ts",
+      "source_location": "L6",
+      "id": "hooks_useopportunities_useopportunities",
+      "community": 0,
+      "norm_label": "useopportunities()"
+    },
+    {
+      "label": "page.tsx",
+      "file_type": "code",
+      "source_file": "src/app/page.tsx",
+      "source_location": "L1",
+      "id": "src_app_page_tsx",
+      "community": 0,
+      "norm_label": "page.tsx"
+    },
+    {
+      "label": "PipelineType",
+      "file_type": "code",
+      "source_file": "src/app/page.tsx",
+      "source_location": "L16",
+      "id": "app_page_pipelinetype",
+      "community": 0,
+      "norm_label": "pipelinetype"
+    },
+    {
+      "label": "Vista",
+      "file_type": "code",
+      "source_file": "src/app/page.tsx",
+      "source_location": "L17",
+      "id": "app_page_vista",
+      "community": 0,
+      "norm_label": "vista"
+    },
+    {
+      "label": "Home()",
+      "file_type": "code",
+      "source_file": "src/app/page.tsx",
+      "source_location": "L23",
+      "id": "app_page_home",
+      "community": 0,
+      "norm_label": "home()"
+    },
+    {
+      "label": "CRMApp()",
+      "file_type": "code",
+      "source_file": "src/app/page.tsx",
+      "source_location": "L31",
+      "id": "app_page_crmapp",
+      "community": 0,
+      "norm_label": "crmapp()"
+    },
+    {
+      "label": "inputStyle",
+      "file_type": "code",
+      "source_file": "src/app/page.tsx",
+      "source_location": "L1308",
+      "id": "app_page_inputstyle",
+      "community": 0,
+      "norm_label": "inputstyle"
+    },
+    {
+      "label": "secTitle",
+      "file_type": "code",
+      "source_file": "src/app/page.tsx",
+      "source_location": "L1315",
+      "id": "app_page_sectitle",
+      "community": 0,
+      "norm_label": "sectitle"
+    },
+    {
+      "label": "rowStyle",
+      "file_type": "code",
+      "source_file": "src/app/page.tsx",
+      "source_location": "L1321",
+      "id": "app_page_rowstyle",
+      "community": 0,
+      "norm_label": "rowstyle"
+    },
+    {
+      "label": "btnStyle()",
+      "file_type": "code",
+      "source_file": "src/app/page.tsx",
+      "source_location": "L1325",
+      "id": "app_page_btnstyle",
+      "community": 0,
+      "norm_label": "btnstyle()"
+    },
+    {
+      "label": "layout.tsx",
+      "file_type": "code",
+      "source_file": "src/app/layout.tsx",
+      "source_location": "L1",
+      "id": "src_app_layout_tsx",
+      "community": 8,
+      "norm_label": "layout.tsx"
+    },
+    {
+      "label": "geistSans",
+      "file_type": "code",
+      "source_file": "src/app/layout.tsx",
+      "source_location": "L5",
+      "id": "app_layout_geistsans",
+      "community": 8,
+      "norm_label": "geistsans"
+    },
+    {
+      "label": "geistMono",
+      "file_type": "code",
+      "source_file": "src/app/layout.tsx",
+      "source_location": "L10",
+      "id": "app_layout_geistmono",
+      "community": 8,
+      "norm_label": "geistmono"
+    },
+    {
+      "label": "metadata",
+      "file_type": "code",
+      "source_file": "src/app/layout.tsx",
+      "source_location": "L15",
+      "id": "app_layout_metadata",
+      "community": 8,
+      "norm_label": "metadata"
+    },
+    {
+      "label": "RootLayout()",
+      "file_type": "code",
+      "source_file": "src/app/layout.tsx",
+      "source_location": "L20",
+      "id": "app_layout_rootlayout",
+      "community": 8,
+      "norm_label": "rootlayout()"
+    },
+    {
+      "label": "README.md",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": "L1",
+      "id": "readme_md",
+      "community": 9,
+      "norm_label": "readme.md"
+    },
+    {
+      "label": "Getting Started",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": "L3",
+      "id": "roca_core_readme_getting_started",
+      "community": 9,
+      "norm_label": "getting started"
+    },
+    {
+      "label": "code:bash (npm run dev)",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": "L7",
+      "id": "roca_core_readme_codeblock_1",
+      "community": 9,
+      "norm_label": "code:bash (npm run dev)"
+    },
+    {
+      "label": "Learn More",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": "L23",
+      "id": "roca_core_readme_learn_more",
+      "community": 9,
+      "norm_label": "learn more"
+    },
+    {
+      "label": "Deploy on Vercel",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": "L32",
+      "id": "roca_core_readme_deploy_on_vercel",
+      "community": 9,
+      "norm_label": "deploy on vercel"
+    },
+    {
+      "label": "AGENTS.md",
+      "file_type": "document",
+      "source_file": "AGENTS.md",
+      "source_location": "L1",
+      "id": "agents_md",
+      "community": 2,
+      "norm_label": "agents.md"
+    },
+    {
+      "label": "This is NOT the Next.js you know",
+      "file_type": "document",
+      "source_file": "AGENTS.md",
+      "source_location": "L2",
+      "id": "roca_core_agents_this_is_not_the_next_js_you_know",
+      "community": 2,
+      "norm_label": "this is not the next.js you know"
+    },
+    {
+      "label": "graphify",
+      "file_type": "document",
+      "source_file": "AGENTS.md",
+      "source_location": "L7",
+      "id": "roca_core_agents_graphify",
+      "community": 2,
+      "norm_label": "graphify"
+    },
+    {
+      "label": "Descripci\u00f3n",
+      "file_type": "document",
+      "source_file": "AGENTS.md",
+      "source_location": "L21",
+      "id": "roca_core_agents_descripci\u00f3n",
+      "community": 2,
+      "norm_label": "descripcion"
+    },
+    {
+      "label": "Stack",
+      "file_type": "document",
+      "source_file": "AGENTS.md",
+      "source_location": "L25",
+      "id": "roca_core_agents_stack",
+      "community": 2,
+      "norm_label": "stack"
+    },
+    {
+      "label": "Archivos clave",
+      "file_type": "document",
+      "source_file": "AGENTS.md",
+      "source_location": "L32",
+      "id": "roca_core_agents_archivos_clave",
+      "community": 2,
+      "norm_label": "archivos clave"
+    },
+    {
+      "label": "Schema Supabase (deducido del c\u00f3digo)",
+      "file_type": "document",
+      "source_file": "AGENTS.md",
+      "source_location": "L48",
+      "id": "roca_core_agents_schema_supabase_deducido_del_c\u00f3digo",
+      "community": 5,
+      "norm_label": "schema supabase (deducido del codigo)"
+    },
+    {
+      "label": "`opportunities`",
+      "file_type": "document",
+      "source_file": "AGENTS.md",
+      "source_location": "L50",
+      "id": "roca_core_agents_opportunities",
+      "community": 5,
+      "norm_label": "`opportunities`"
+    },
+    {
+      "label": "code:block1 (id: uuid PK)",
+      "file_type": "document",
+      "source_file": "AGENTS.md",
+      "source_location": "L51",
+      "id": "roca_core_agents_codeblock_1",
+      "community": 5,
+      "norm_label": "code:block1 (id: uuid pk)"
+    },
+    {
+      "label": "`contacts`",
+      "file_type": "document",
+      "source_file": "AGENTS.md",
+      "source_location": "L64",
+      "id": "roca_core_agents_contacts",
+      "community": 5,
+      "norm_label": "`contacts`"
+    },
+    {
+      "label": "code:block2 (id: uuid PK)",
+      "file_type": "document",
+      "source_file": "AGENTS.md",
+      "source_location": "L65",
+      "id": "roca_core_agents_codeblock_2",
+      "community": 5,
+      "norm_label": "code:block2 (id: uuid pk)"
+    },
+    {
+      "label": "`properties`",
+      "file_type": "document",
+      "source_file": "AGENTS.md",
+      "source_location": "L72",
+      "id": "roca_core_agents_properties",
+      "community": 5,
+      "norm_label": "`properties`"
+    },
+    {
+      "label": "code:block3 (id: uuid PK)",
+      "file_type": "document",
+      "source_file": "AGENTS.md",
+      "source_location": "L73",
+      "id": "roca_core_agents_codeblock_3",
+      "community": 5,
+      "norm_label": "code:block3 (id: uuid pk)"
+    },
+    {
+      "label": "`activities`",
+      "file_type": "document",
+      "source_file": "AGENTS.md",
+      "source_location": "L83",
+      "id": "roca_core_agents_activities",
+      "community": 5,
+      "norm_label": "`activities`"
+    },
+    {
+      "label": "code:block4 (id: uuid PK)",
+      "file_type": "document",
+      "source_file": "AGENTS.md",
+      "source_location": "L84",
+      "id": "roca_core_agents_codeblock_4",
+      "community": 5,
+      "norm_label": "code:block4 (id: uuid pk)"
+    },
+    {
+      "label": "L\u00f3gica de negocio",
+      "file_type": "document",
+      "source_file": "AGENTS.md",
+      "source_location": "L99",
+      "id": "roca_core_agents_l\u00f3gica_de_negocio",
+      "community": 2,
+      "norm_label": "logica de negocio"
+    },
+    {
+      "label": "Pipeline Lead (compradores)",
+      "file_type": "document",
+      "source_file": "AGENTS.md",
+      "source_location": "L101",
+      "id": "roca_core_agents_pipeline_lead_compradores",
+      "community": 2,
+      "norm_label": "pipeline lead (compradores)"
+    },
+    {
+      "label": "code:block5 (Contactado \u2192 Interesado \u2192 Visita \u2192 Seguimiento \u2192 Cerrado)",
+      "file_type": "document",
+      "source_file": "AGENTS.md",
+      "source_location": "L102",
+      "id": "roca_core_agents_codeblock_5",
+      "community": 2,
+      "norm_label": "code:block5 (contactado \u2192 interesado \u2192 visita \u2192 seguimiento \u2192 cerrado)"
+    },
+    {
+      "label": "Pipeline Propietario (captaci\u00f3n)",
+      "file_type": "document",
+      "source_file": "AGENTS.md",
+      "source_location": "L112",
+      "id": "roca_core_agents_pipeline_propietario_captaci\u00f3n",
+      "community": 2,
+      "norm_label": "pipeline propietario (captacion)"
+    },
+    {
+      "label": "code:block6 (Contactado \u2192 Tasaci\u00f3n \u2192 Seguimiento \u2192 Captado)",
+      "file_type": "document",
+      "source_file": "AGENTS.md",
+      "source_location": "L113",
+      "id": "roca_core_agents_codeblock_6",
+      "community": 2,
+      "norm_label": "code:block6 (contactado \u2192 tasacion \u2192 seguimiento \u2192 captado)"
+    },
+    {
+      "label": "Scoring",
+      "file_type": "document",
+      "source_file": "AGENTS.md",
+      "source_location": "L122",
+      "id": "roca_core_agents_scoring",
+      "community": 2,
+      "norm_label": "scoring"
+    },
+    {
+      "label": "Arquitectura operacional",
+      "file_type": "document",
+      "source_file": "AGENTS.md",
+      "source_location": "L132",
+      "id": "roca_core_agents_arquitectura_operacional",
+      "community": 7,
+      "norm_label": "arquitectura operacional"
+    },
+    {
+      "label": "N\u00facleo: activities, no next_action_date",
+      "file_type": "document",
+      "source_file": "AGENTS.md",
+      "source_location": "L134",
+      "id": "roca_core_agents_n\u00facleo_activities_no_next_action_date",
+      "community": 7,
+      "norm_label": "nucleo: activities, no next_action_date"
+    },
+    {
+      "label": "VistaHoy \u2014 5 secciones operacionales",
+      "file_type": "document",
+      "source_file": "AGENTS.md",
+      "source_location": "L141",
+      "id": "roca_core_agents_vistahoy_5_secciones_operacionales",
+      "community": 7,
+      "norm_label": "vistahoy \u2014 5 secciones operacionales"
+    },
+    {
+      "label": "code:block7 (\u26a0\ufe0f Vencidas recientes (\u22647d)  \u2192 scheduled_at < inicioHoy, >= )",
+      "file_type": "document",
+      "source_file": "AGENTS.md",
+      "source_location": "L145",
+      "id": "roca_core_agents_codeblock_7",
+      "community": 7,
+      "norm_label": "code:block7 (\u26a0\ufe0f vencidas recientes (\u22647d)  \u2192 scheduled_at < iniciohoy, >= )"
+    },
+    {
+      "label": "Acciones operacionales",
+      "file_type": "document",
+      "source_file": "AGENTS.md",
+      "source_location": "L153",
+      "id": "roca_core_agents_acciones_operacionales",
+      "community": 7,
+      "norm_label": "acciones operacionales"
+    },
+    {
+      "label": "Flujo de datos",
+      "file_type": "document",
+      "source_file": "AGENTS.md",
+      "source_location": "L160",
+      "id": "roca_core_agents_flujo_de_datos",
+      "community": 7,
+      "norm_label": "flujo de datos"
+    },
+    {
+      "label": "code:block8 (AuthGate \u2192 login \u2192 CRMApp(userId))",
+      "file_type": "document",
+      "source_file": "AGENTS.md",
+      "source_location": "L161",
+      "id": "roca_core_agents_codeblock_8",
+      "community": 7,
+      "norm_label": "code:block8 (authgate \u2192 login \u2192 crmapp(userid))"
+    },
+    {
+      "label": "Restricciones (NO tocar sin discutir)",
+      "file_type": "document",
+      "source_file": "AGENTS.md",
+      "source_location": "L168",
+      "id": "roca_core_agents_restricciones_no_tocar_sin_discutir",
+      "community": 2,
+      "norm_label": "restricciones (no tocar sin discutir)"
+    },
+    {
+      "label": "Estado de page.tsx",
+      "file_type": "document",
+      "source_file": "AGENTS.md",
+      "source_location": "L178",
+      "id": "roca_core_agents_estado_de_page_tsx",
+      "community": 2,
+      "norm_label": "estado de page.tsx"
+    }
+  ],
+  "links": [
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "next.config.ts",
+      "source_location": "L3",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "next_config_ts",
+      "target": "roca_core_next_config_nextconfig"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "eslint.config.mjs",
+      "source_location": "L5",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "eslint_config_mjs",
+      "target": "roca_core_eslint_config_eslintconfig"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "postcss.config.mjs",
+      "source_location": "L1",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "postcss_config_mjs",
+      "target": "roca_core_postcss_config_config"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/generate-db-schema.js",
+      "source_location": "L10",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "scripts_generate_db_schema_js",
+      "target": "scripts_generate_db_schema_path"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/generate-db-schema.js",
+      "source_location": "L13",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "scripts_generate_db_schema_js",
+      "target": "scripts_generate_db_schema_createclient"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/generate-db-schema.js",
+      "source_location": "L14",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "scripts_generate_db_schema_js",
+      "target": "scripts_generate_db_schema_fs"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/generate-db-schema.js",
+      "source_location": "L25",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "scripts_generate_db_schema_js",
+      "target": "scripts_generate_db_schema_supabase"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/generate-db-schema.js",
+      "source_location": "L27",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "scripts_generate_db_schema_js",
+      "target": "scripts_generate_db_schema_tables"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/generate-db-schema.js",
+      "source_location": "L29",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "scripts_generate_db_schema_js",
+      "target": "scripts_generate_db_schema_mappostgrestype"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/generate-db-schema.js",
+      "source_location": "L53",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "scripts_generate_db_schema_js",
+      "target": "scripts_generate_db_schema_generateschema"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/auth.ts",
+      "source_location": "L1",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_lib_auth_ts",
+      "target": "src_lib_supabase_ts"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/auth.ts",
+      "source_location": "L1",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_lib_auth_ts",
+      "target": "lib_supabase_supabase"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/auth.ts",
+      "source_location": "L3",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_lib_auth_ts",
+      "target": "lib_auth_getuser"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/auth.ts",
+      "source_location": "L8",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_lib_auth_ts",
+      "target": "lib_auth_signinwithemail"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/auth.ts",
+      "source_location": "L12",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_lib_auth_ts",
+      "target": "lib_auth_signout"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/supabase.ts",
+      "source_location": "L4",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_lib_supabase_ts",
+      "target": "lib_supabase_supabase"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/crm/dates.ts",
+      "source_location": "L1",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_lib_crm_dates_ts",
+      "target": "src_lib_supabase_ts"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/AuthGate.tsx",
+      "source_location": "L4",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_components_authgate_tsx",
+      "target": "src_lib_supabase_ts"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/hooks/useTimeline.ts",
+      "source_location": "L4",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_hooks_usetimeline_ts",
+      "target": "src_lib_supabase_ts"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/hooks/useOpportunities.ts",
+      "source_location": "L4",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_hooks_useopportunities_ts",
+      "target": "src_lib_supabase_ts"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/page.tsx",
+      "source_location": "L4",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_app_page_tsx",
+      "target": "src_lib_supabase_ts"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/crm/dates.ts",
+      "source_location": "L1",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_lib_crm_dates_ts",
+      "target": "lib_supabase_supabase"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/AuthGate.tsx",
+      "source_location": "L4",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_components_authgate_tsx",
+      "target": "lib_supabase_supabase"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/hooks/useTimeline.ts",
+      "source_location": "L4",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_hooks_usetimeline_ts",
+      "target": "lib_supabase_supabase"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/hooks/useOpportunities.ts",
+      "source_location": "L4",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_hooks_useopportunities_ts",
+      "target": "lib_supabase_supabase"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/page.tsx",
+      "source_location": "L4",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_app_page_tsx",
+      "target": "lib_supabase_supabase"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/crm/types.ts",
+      "source_location": "L1",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_lib_crm_types_ts",
+      "target": "crm_types_contact"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/crm/types.ts",
+      "source_location": "L6",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_lib_crm_types_ts",
+      "target": "crm_types_property"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/crm/types.ts",
+      "source_location": "L12",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_lib_crm_types_ts",
+      "target": "crm_types_opportunity"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/page.tsx",
+      "source_location": "L10",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_app_page_tsx",
+      "target": "src_lib_crm_types_ts"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/page.tsx",
+      "source_location": "L10",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_app_page_tsx",
+      "target": "crm_types_opportunity"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/crm/dates.ts",
+      "source_location": "L3",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_lib_crm_dates_ts",
+      "target": "crm_dates_getfecha"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/crm/dates.ts",
+      "source_location": "L9",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_lib_crm_dates_ts",
+      "target": "crm_dates_estavencido"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/crm/dates.ts",
+      "source_location": "L12",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_lib_crm_dates_ts",
+      "target": "crm_dates_estahoy"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/crm/dates.ts",
+      "source_location": "L19",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_lib_crm_dates_ts",
+      "target": "crm_dates_getpendingactivities"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/page.tsx",
+      "source_location": "L7",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_app_page_tsx",
+      "target": "src_lib_crm_dates_ts"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/page.tsx",
+      "source_location": "L7",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_app_page_tsx",
+      "target": "crm_dates_getfecha"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/page.tsx",
+      "source_location": "L7",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_app_page_tsx",
+      "target": "crm_dates_estavencido"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/page.tsx",
+      "source_location": "L7",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_app_page_tsx",
+      "target": "crm_dates_estahoy"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/crm/scoring.ts",
+      "source_location": "L1",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_lib_crm_scoring_ts",
+      "target": "crm_scoring_stagescores"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/crm/scoring.ts",
+      "source_location": "L13",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_lib_crm_scoring_ts",
+      "target": "crm_scoring_getlastactivity"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/crm/scoring.ts",
+      "source_location": "L22",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_lib_crm_scoring_ts",
+      "target": "crm_scoring_getpendingactivities"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/crm/scoring.ts",
+      "source_location": "L31",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_lib_crm_scoring_ts",
+      "target": "crm_scoring_getoverdueactivities"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/crm/scoring.ts",
+      "source_location": "L42",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_lib_crm_scoring_ts",
+      "target": "crm_scoring_getupcomingvisits"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/crm/scoring.ts",
+      "source_location": "L50",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_lib_crm_scoring_ts",
+      "target": "crm_scoring_getdayssincelastactivity"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/crm/scoring.ts",
+      "source_location": "L57",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_lib_crm_scoring_ts",
+      "target": "crm_scoring_isvisittoday"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/crm/scoring.ts",
+      "source_location": "L64",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_lib_crm_scoring_ts",
+      "target": "crm_scoring_getscore"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/crm/scoring.ts",
+      "source_location": "L121",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_lib_crm_scoring_ts",
+      "target": "crm_scoring_getcalor"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/page.tsx",
+      "source_location": "L9",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_app_page_tsx",
+      "target": "src_lib_crm_scoring_ts"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/crm/scoring.ts",
+      "source_location": "L51",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "crm_scoring_getdayssincelastactivity",
+      "target": "crm_scoring_getlastactivity"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/crm/scoring.ts",
+      "source_location": "L98",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "crm_scoring_getscore",
+      "target": "crm_scoring_getlastactivity"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/crm/scoring.ts",
+      "source_location": "L82",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "crm_scoring_getscore",
+      "target": "crm_scoring_getpendingactivities"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/crm/scoring.ts",
+      "source_location": "L79",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "crm_scoring_getscore",
+      "target": "crm_scoring_getoverdueactivities"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/crm/scoring.ts",
+      "source_location": "L90",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "crm_scoring_getscore",
+      "target": "crm_scoring_getupcomingvisits"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/crm/scoring.ts",
+      "source_location": "L92",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "crm_scoring_getscore",
+      "target": "crm_scoring_getdayssincelastactivity"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/crm/scoring.ts",
+      "source_location": "L89",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "crm_scoring_getscore",
+      "target": "crm_scoring_isvisittoday"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/page.tsx",
+      "source_location": "L9",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_app_page_tsx",
+      "target": "crm_scoring_getscore"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/page.tsx",
+      "source_location": "L9",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_app_page_tsx",
+      "target": "crm_scoring_getcalor"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/crm/stages.ts",
+      "source_location": "L1",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_lib_crm_stages_ts",
+      "target": "crm_stages_stages_lead"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/crm/stages.ts",
+      "source_location": "L10",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_lib_crm_stages_ts",
+      "target": "crm_stages_stages_propietario"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/crm/stages.ts",
+      "source_location": "L18",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_lib_crm_stages_ts",
+      "target": "crm_stages_stage_label"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/page.tsx",
+      "source_location": "L5",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_app_page_tsx",
+      "target": "src_lib_crm_stages_ts"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/page.tsx",
+      "source_location": "L5",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_app_page_tsx",
+      "target": "crm_stages_stages_lead"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/page.tsx",
+      "source_location": "L5",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_app_page_tsx",
+      "target": "crm_stages_stages_propietario"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/page.tsx",
+      "source_location": "L5",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_app_page_tsx",
+      "target": "crm_stages_stage_label"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/crm/styles.ts",
+      "source_location": "L5",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_lib_crm_styles_ts",
+      "target": "crm_styles_colors"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/crm/styles.ts",
+      "source_location": "L44",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_lib_crm_styles_ts",
+      "target": "crm_styles_inputstyle"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/crm/styles.ts",
+      "source_location": "L56",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_lib_crm_styles_ts",
+      "target": "crm_styles_sectitle"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/crm/styles.ts",
+      "source_location": "L66",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_lib_crm_styles_ts",
+      "target": "crm_styles_rowstyle"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/crm/styles.ts",
+      "source_location": "L77",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_lib_crm_styles_ts",
+      "target": "crm_styles_buttonvariant"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/crm/styles.ts",
+      "source_location": "L79",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_lib_crm_styles_ts",
+      "target": "crm_styles_buttoncolors"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/crm/styles.ts",
+      "source_location": "L88",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_lib_crm_styles_ts",
+      "target": "crm_styles_btnstyle"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/crm/styles.ts",
+      "source_location": "L105",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_lib_crm_styles_ts",
+      "target": "crm_styles_getcardstyle"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/crm/styles.ts",
+      "source_location": "L115",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_lib_crm_styles_ts",
+      "target": "crm_styles_getheaderstyle"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/crm/styles.ts",
+      "source_location": "L129",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_lib_crm_styles_ts",
+      "target": "crm_styles_gettabsstyle"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/crm/styles.ts",
+      "source_location": "L140",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_lib_crm_styles_ts",
+      "target": "crm_styles_gettabstyle"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/crm/styles.ts",
+      "source_location": "L154",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_lib_crm_styles_ts",
+      "target": "crm_styles_getbadgestyle"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/crm/styles.ts",
+      "source_location": "L165",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_lib_crm_styles_ts",
+      "target": "crm_styles_getstatscardstyle"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/crm/styles.ts",
+      "source_location": "L175",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_lib_crm_styles_ts",
+      "target": "crm_styles_contentstyle"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/crm/styles.ts",
+      "source_location": "L181",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_lib_crm_styles_ts",
+      "target": "crm_styles_emptystatestyle"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/crm/messages.ts",
+      "source_location": "L1",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_lib_crm_messages_ts",
+      "target": "crm_messages_getmensaje"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/crm/messages.ts",
+      "source_location": "L19",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_lib_crm_messages_ts",
+      "target": "crm_messages_gettipomensaje"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/page.tsx",
+      "source_location": "L8",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_app_page_tsx",
+      "target": "src_lib_crm_messages_ts"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/page.tsx",
+      "source_location": "L8",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_app_page_tsx",
+      "target": "crm_messages_getmensaje"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/page.tsx",
+      "source_location": "L8",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_app_page_tsx",
+      "target": "crm_messages_gettipomensaje"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/AuthGate.tsx",
+      "source_location": "L7",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_components_authgate_tsx",
+      "target": "components_authgate_authgate"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/AuthGate.tsx",
+      "source_location": "L61",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_components_authgate_tsx",
+      "target": "components_authgate_inputstyle"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/AuthGate.tsx",
+      "source_location": "L66",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_components_authgate_tsx",
+      "target": "components_authgate_btnstyle"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/page.tsx",
+      "source_location": "L6",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_app_page_tsx",
+      "target": "src_components_authgate_tsx"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/hooks/useTimeline.ts",
+      "source_location": "L6",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_hooks_usetimeline_ts",
+      "target": "hooks_usetimeline_usetimeline"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/page.tsx",
+      "source_location": "L12",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_app_page_tsx",
+      "target": "src_hooks_usetimeline_ts"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/page.tsx",
+      "source_location": "L12",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_app_page_tsx",
+      "target": "hooks_usetimeline_usetimeline"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/app/page.tsx",
+      "source_location": "L43",
+      "weight": 1.0,
+      "source": "app_page_crmapp",
+      "target": "hooks_usetimeline_usetimeline"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/hooks/useOpportunities.ts",
+      "source_location": "L6",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_hooks_useopportunities_ts",
+      "target": "hooks_useopportunities_useopportunities"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/page.tsx",
+      "source_location": "L11",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_app_page_tsx",
+      "target": "src_hooks_useopportunities_ts"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/page.tsx",
+      "source_location": "L11",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_app_page_tsx",
+      "target": "hooks_useopportunities_useopportunities"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/app/page.tsx",
+      "source_location": "L38",
+      "weight": 1.0,
+      "source": "app_page_crmapp",
+      "target": "hooks_useopportunities_useopportunities"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/page.tsx",
+      "source_location": "L16",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_app_page_tsx",
+      "target": "app_page_pipelinetype"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/page.tsx",
+      "source_location": "L17",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_app_page_tsx",
+      "target": "app_page_vista"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/page.tsx",
+      "source_location": "L23",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_app_page_tsx",
+      "target": "app_page_home"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/page.tsx",
+      "source_location": "L31",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_app_page_tsx",
+      "target": "app_page_crmapp"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/page.tsx",
+      "source_location": "L921",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_app_page_tsx",
+      "target": "app_page_inputstyle"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/page.tsx",
+      "source_location": "L928",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_app_page_tsx",
+      "target": "app_page_sectitle"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/page.tsx",
+      "source_location": "L934",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_app_page_tsx",
+      "target": "app_page_rowstyle"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/page.tsx",
+      "source_location": "L938",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_app_page_tsx",
+      "target": "app_page_btnstyle"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/page.tsx",
+      "source_location": "L572",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "app_page_crmapp",
+      "target": "app_page_btnstyle"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/layout.tsx",
+      "source_location": "L5",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_app_layout_tsx",
+      "target": "app_layout_geistsans"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/layout.tsx",
+      "source_location": "L10",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_app_layout_tsx",
+      "target": "app_layout_geistmono"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/layout.tsx",
+      "source_location": "L15",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_app_layout_tsx",
+      "target": "app_layout_metadata"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/layout.tsx",
+      "source_location": "L20",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_app_layout_tsx",
+      "target": "app_layout_rootlayout"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
+      "source_location": "L3",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "readme_md",
+      "target": "roca_core_readme_getting_started"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
+      "source_location": "L23",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "readme_md",
+      "target": "roca_core_readme_learn_more"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
+      "source_location": "L32",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "readme_md",
+      "target": "roca_core_readme_deploy_on_vercel"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
+      "source_location": "L7",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "roca_core_readme_getting_started",
+      "target": "roca_core_readme_codeblock_1"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "AGENTS.md",
+      "source_location": "L2",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "agents_md",
+      "target": "roca_core_agents_this_is_not_the_next_js_you_know"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "AGENTS.md",
+      "source_location": "L7",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "roca_core_agents_this_is_not_the_next_js_you_know",
+      "target": "roca_core_agents_graphify"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "AGENTS.md",
+      "source_location": "L21",
+      "weight": 1.0,
+      "source": "roca_core_agents_this_is_not_the_next_js_you_know",
+      "target": "roca_core_agents_descripci\u00f3n",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "AGENTS.md",
+      "source_location": "L25",
+      "weight": 1.0,
+      "source": "roca_core_agents_this_is_not_the_next_js_you_know",
+      "target": "roca_core_agents_stack",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "AGENTS.md",
+      "source_location": "L32",
+      "weight": 1.0,
+      "source": "roca_core_agents_this_is_not_the_next_js_you_know",
+      "target": "roca_core_agents_archivos_clave",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "AGENTS.md",
+      "source_location": "L48",
+      "weight": 1.0,
+      "source": "roca_core_agents_this_is_not_the_next_js_you_know",
+      "target": "roca_core_agents_schema_supabase_deducido_del_c\u00f3digo",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "AGENTS.md",
+      "source_location": "L99",
+      "weight": 1.0,
+      "source": "roca_core_agents_this_is_not_the_next_js_you_know",
+      "target": "roca_core_agents_l\u00f3gica_de_negocio",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "AGENTS.md",
+      "source_location": "L132",
+      "weight": 1.0,
+      "source": "roca_core_agents_this_is_not_the_next_js_you_know",
+      "target": "roca_core_agents_arquitectura_operacional",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "AGENTS.md",
+      "source_location": "L168",
+      "weight": 1.0,
+      "source": "roca_core_agents_this_is_not_the_next_js_you_know",
+      "target": "roca_core_agents_restricciones_no_tocar_sin_discutir",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "AGENTS.md",
+      "source_location": "L178",
+      "weight": 1.0,
+      "source": "roca_core_agents_this_is_not_the_next_js_you_know",
+      "target": "roca_core_agents_estado_de_page_tsx",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "AGENTS.md",
+      "source_location": "L50",
+      "weight": 1.0,
+      "source": "roca_core_agents_schema_supabase_deducido_del_c\u00f3digo",
+      "target": "roca_core_agents_opportunities",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "AGENTS.md",
+      "source_location": "L64",
+      "weight": 1.0,
+      "source": "roca_core_agents_schema_supabase_deducido_del_c\u00f3digo",
+      "target": "roca_core_agents_contacts",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "AGENTS.md",
+      "source_location": "L72",
+      "weight": 1.0,
+      "source": "roca_core_agents_schema_supabase_deducido_del_c\u00f3digo",
+      "target": "roca_core_agents_properties",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "AGENTS.md",
+      "source_location": "L83",
+      "weight": 1.0,
+      "source": "roca_core_agents_schema_supabase_deducido_del_c\u00f3digo",
+      "target": "roca_core_agents_activities",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "AGENTS.md",
+      "source_location": "L51",
+      "weight": 1.0,
+      "source": "roca_core_agents_opportunities",
+      "target": "roca_core_agents_codeblock_1",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "AGENTS.md",
+      "source_location": "L65",
+      "weight": 1.0,
+      "source": "roca_core_agents_contacts",
+      "target": "roca_core_agents_codeblock_2",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "AGENTS.md",
+      "source_location": "L73",
+      "weight": 1.0,
+      "source": "roca_core_agents_properties",
+      "target": "roca_core_agents_codeblock_3",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "AGENTS.md",
+      "source_location": "L84",
+      "weight": 1.0,
+      "source": "roca_core_agents_activities",
+      "target": "roca_core_agents_codeblock_4",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "AGENTS.md",
+      "source_location": "L101",
+      "weight": 1.0,
+      "source": "roca_core_agents_l\u00f3gica_de_negocio",
+      "target": "roca_core_agents_pipeline_lead_compradores",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "AGENTS.md",
+      "source_location": "L112",
+      "weight": 1.0,
+      "source": "roca_core_agents_l\u00f3gica_de_negocio",
+      "target": "roca_core_agents_pipeline_propietario_captaci\u00f3n",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "AGENTS.md",
+      "source_location": "L122",
+      "weight": 1.0,
+      "source": "roca_core_agents_l\u00f3gica_de_negocio",
+      "target": "roca_core_agents_scoring",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "AGENTS.md",
+      "source_location": "L102",
+      "weight": 1.0,
+      "source": "roca_core_agents_pipeline_lead_compradores",
+      "target": "roca_core_agents_codeblock_5",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "AGENTS.md",
+      "source_location": "L113",
+      "weight": 1.0,
+      "source": "roca_core_agents_pipeline_propietario_captaci\u00f3n",
+      "target": "roca_core_agents_codeblock_6",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "AGENTS.md",
+      "source_location": "L134",
+      "weight": 1.0,
+      "source": "roca_core_agents_arquitectura_operacional",
+      "target": "roca_core_agents_n\u00facleo_activities_no_next_action_date",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "AGENTS.md",
+      "source_location": "L141",
+      "weight": 1.0,
+      "source": "roca_core_agents_arquitectura_operacional",
+      "target": "roca_core_agents_vistahoy_5_secciones_operacionales",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "AGENTS.md",
+      "source_location": "L153",
+      "weight": 1.0,
+      "source": "roca_core_agents_arquitectura_operacional",
+      "target": "roca_core_agents_acciones_operacionales",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "AGENTS.md",
+      "source_location": "L160",
+      "weight": 1.0,
+      "source": "roca_core_agents_arquitectura_operacional",
+      "target": "roca_core_agents_flujo_de_datos",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "AGENTS.md",
+      "source_location": "L145",
+      "weight": 1.0,
+      "source": "roca_core_agents_vistahoy_5_secciones_operacionales",
+      "target": "roca_core_agents_codeblock_7",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "AGENTS.md",
+      "source_location": "L161",
+      "weight": 1.0,
+      "source": "roca_core_agents_flujo_de_datos",
+      "target": "roca_core_agents_codeblock_8",
+      "confidence_score": 1.0
+    }
+  ],
+  "hyperedges": [],
+  "built_at_commit": "d85cae8fa300a81a61c858db4f2f947e4d262c98"
+}

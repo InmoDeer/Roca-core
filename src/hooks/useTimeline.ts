@@ -63,9 +63,9 @@ export const useTimeline = (onActivityCreated?: () => void) => {
         type: tipo,
         channel: channel,
         result: resultado,
-        status: 'completed',
+        status: 'pending',
         note: nota || null,
-        completed_at: new Date().toISOString(),
+        scheduled_at: new Date().toISOString(),
         user_id: opp.user_id,
       }])
     }

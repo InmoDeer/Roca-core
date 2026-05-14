@@ -1,0 +1,110 @@
+{
+  "/mnt/chromeos/removable/USB Drive/home/juan/Escritorio/ROCA/roca-core/next.config.ts": {
+    "mtime": 1778727631.8850155,
+    "hash": "9b77af189a21a7a64e4bd7a426f64176"
+  },
+  "/mnt/chromeos/removable/USB Drive/home/juan/Escritorio/ROCA/roca-core/eslint.config.mjs": {
+    "mtime": 1778727630.4600153,
+    "hash": "dfa1f5f6a7037bf39dc510f30b180002"
+  },
+  "/mnt/chromeos/removable/USB Drive/home/juan/Escritorio/ROCA/roca-core/postcss.config.mjs": {
+    "mtime": 1778727632.1610155,
+    "hash": "239f3ebf717465dc636818a1a619398d"
+  },
+  "/mnt/chromeos/removable/USB Drive/home/juan/Escritorio/ROCA/roca-core/next-env.d.ts": {
+    "mtime": 1778563082.6085684,
+    "hash": "d0f8375ae1199dc7acd3977fc33b78b8"
+  },
+  "/mnt/chromeos/removable/USB Drive/home/juan/Escritorio/ROCA/roca-core/scripts/generate-db-schema.js": {
+    "mtime": 1778727632.5100155,
+    "hash": "8966a0e6a65e9b6482fdebdfbf25e47c"
+  },
+  "/mnt/chromeos/removable/USB Drive/home/juan/Escritorio/ROCA/roca-core/supabase/migrations/20260513_fix_activities_constraints.sql": {
+    "mtime": 1778730169.1821177,
+    "hash": "b7a31b12b318cca5473490ad8d6c188a"
+  },
+  "/mnt/chromeos/removable/USB Drive/home/juan/Escritorio/ROCA/roca-core/src/lib/auth.ts": {
+    "mtime": 1778727633.2140155,
+    "hash": "9f3f0249889aa3d017b192ab3d52d749"
+  },
+  "/mnt/chromeos/removable/USB Drive/home/juan/Escritorio/ROCA/roca-core/src/lib/supabase.ts": {
+    "mtime": 1778727633.7310154,
+    "hash": "4411e1b132c0ebb06b6e52d00c1b3674"
+  },
+  "/mnt/chromeos/removable/USB Drive/home/juan/Escritorio/ROCA/roca-core/src/lib/crm/types.ts": {
+    "mtime": 1778727633.6900156,
+    "hash": "0a0431e7c8dc124567a091365cd604c0"
+  },
+  "/mnt/chromeos/removable/USB Drive/home/juan/Escritorio/ROCA/roca-core/src/lib/crm/dates.ts": {
+    "mtime": 1778727633.2920156,
+    "hash": "571852dcc22cbe5d3ba551a30d7ab598"
+  },
+  "/mnt/chromeos/removable/USB Drive/home/juan/Escritorio/ROCA/roca-core/src/lib/crm/scoring.ts": {
+    "mtime": 1778727633.5320156,
+    "hash": "8f79738096e6685b825bf650da0b6ccf"
+  },
+  "/mnt/chromeos/removable/USB Drive/home/juan/Escritorio/ROCA/roca-core/src/lib/crm/stages.ts": {
+    "mtime": 1778727633.6110156,
+    "hash": "ee62790ba27b88a171d5d7659d54af50"
+  },
+  "/mnt/chromeos/removable/USB Drive/home/juan/Escritorio/ROCA/roca-core/src/lib/crm/styles.ts": {
+    "mtime": 1778727633.6640155,
+    "hash": "121ee3b69b0f40e1deee6a6e9808269f"
+  },
+  "/mnt/chromeos/removable/USB Drive/home/juan/Escritorio/ROCA/roca-core/src/lib/crm/messages.ts": {
+    "mtime": 1778727633.4120154,
+    "hash": "bc241a324812e2c90ab692613f5c37ee"
+  },
+  "/mnt/chromeos/removable/USB Drive/home/juan/Escritorio/ROCA/roca-core/src/components/AuthGate.tsx": {
+    "mtime": 1778727633.0280154,
+    "hash": "1e92a20270ff378f80d1782f85eca850"
+  },
+  "/mnt/chromeos/removable/USB Drive/home/juan/Escritorio/ROCA/roca-core/src/hooks/useTimeline.ts": {
+    "mtime": 1778727633.1660154,
+    "hash": "b846d403d60f9a0ae759db1c5cea32a8"
+  },
+  "/mnt/chromeos/removable/USB Drive/home/juan/Escritorio/ROCA/roca-core/src/hooks/useOpportunities.ts": {
+    "mtime": 1778727633.1250155,
+    "hash": "ad3c538be1c57f4ff538f7242421f125"
+  },
+  "/mnt/chromeos/removable/USB Drive/home/juan/Escritorio/ROCA/roca-core/src/app/page.tsx": {
+    "mtime": 1778731301.6491632,
+    "hash": "e95ad557798704cf254621998b830a19"
+  },
+  "/mnt/chromeos/removable/USB Drive/home/juan/Escritorio/ROCA/roca-core/src/app/layout.tsx": {
+    "mtime": 1778727632.7140155,
+    "hash": "93f7f145cb2d604323ea013b9d708a3d"
+  },
+  "/mnt/chromeos/removable/USB Drive/home/juan/Escritorio/ROCA/roca-core/data/db-schema.sql": {
+    "mtime": 1778731329.8881643,
+    "hash": "ba00a30da2a2dc7f775ef4efb4a33669"
+  },
+  "/mnt/chromeos/removable/USB Drive/home/juan/Escritorio/ROCA/roca-core/README.md": {
+    "mtime": 1778727630.4350154,
+    "hash": "f15aaa42d5d299d091b1171097ea56ad"
+  },
+  "/mnt/chromeos/removable/USB Drive/home/juan/Escritorio/ROCA/roca-core/AGENTS.md": {
+    "mtime": 1778728198.984038,
+    "hash": "4eb59d6314a37a3efa05cca5cc019e0a"
+  },
+  "/mnt/chromeos/removable/USB Drive/home/juan/Escritorio/ROCA/roca-core/public/vercel.svg": {
+    "mtime": 1778727632.3600154,
+    "hash": "c0af2f507b369b085b35ef4bbe3bcf1e"
+  },
+  "/mnt/chromeos/removable/USB Drive/home/juan/Escritorio/ROCA/roca-core/public/window.svg": {
+    "mtime": 1778727632.4190154,
+    "hash": "a2760511c65806022ad20adf74370ff3"
+  },
+  "/mnt/chromeos/removable/USB Drive/home/juan/Escritorio/ROCA/roca-core/public/globe.svg": {
+    "mtime": 1778727632.2920153,
+    "hash": "2aaafa6a49b6563925fe440891e32717"
+  },
+  "/mnt/chromeos/removable/USB Drive/home/juan/Escritorio/ROCA/roca-core/public/file.svg": {
+    "mtime": 1778727632.2660153,
+    "hash": "d09f95206c3fa0bb9bd9fefabfd0ea71"
+  },
+  "/mnt/chromeos/removable/USB Drive/home/juan/Escritorio/ROCA/roca-core/public/next.svg": {
+    "mtime": 1778727632.3260155,
+    "hash": "8e061864f388b47f33a1c3780831193e"
+  }
+}

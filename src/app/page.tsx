@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { supabase } from '../lib/supabase'
 import { STAGES_LEAD, STAGES_PROPIETARIO, STAGE_LABEL } from '../lib/crm/stages'
 import AuthGate from '../components/AuthGate'
@@ -31,14 +31,11 @@ export default function Home() {
 function CRMApp({ userId }: { userId: string }) {
   const [vista, setVista] = useState<Vista>('hoy')
 
-  const userIdRef = useRef(userId)
-  useEffect(() => { userIdRef.current = userId }, [userId])
-
   // Hooks
   const { 
-    opps, properties, activities, loading, 
-    cargarOpps, cargarActivities, crearOpp, actualizarStage, completarCaptacion, getOppWithPendingActivities 
-  } = useOpportunities(userIdRef.current)
+    opps, properties, activities, pendingActivities, loading, 
+    cargarOpps, cargarActivities, crearOpp, actualizarStage, completarCaptacion, completarActividad, getOppWithPendingActivities 
+  } = useOpportunities(userId)
 
   const { 
     timeline, timelineOpen, selectedOpp, loading: timelineLoading,
@@ -76,6 +73,14 @@ function CRMApp({ userId }: { userId: string }) {
   const [propiedadDistrito, setPropiedadDistrito] = useState('')
   const [propiedadIdSeleccionada, setPropiedadIdSeleccionada] = useState('')
 
+  // Reagendar
+  const [loadingActivity, setLoadingActivity] = useState<string | null>(null)
+  const [reagendarActId, setReagendarActId] = useState<string | null>(null)
+  const [reagendarFecha, setReagendarFecha] = useState('')
+
+  // Quick add
+  const [quickAddOpp, setQuickAddOpp] = useState<any>(null)
+
   // ── Helpers ───────────────────────────────────────────────────────────────────
 
   const ICONO_TYPE: Record<string, string> = {
@@ -104,6 +109,38 @@ function CRMApp({ userId }: { userId: string }) {
     { value: 'sin_interes', label: '😴 Sin interés' },
     { value: 'confirmo_visita', label: '✅ Confirmó visita' },
   ]
+
+  // ── Activity map visual ────────────────────────────────────────────────────
+
+  const ACTIVITY_LABELS: Record<string, string> = {
+    call: '📞 Llamada', whatsapp: '📱 WhatsApp',
+    visit: '🏠 Visita', meeting: '🤝 Reunión',
+    email: '📧 Email', note: '📝 Nota',
+  }
+
+  const ACTIVITY_COLORS: Record<string, string> = {
+    call: '#3b82f6', whatsapp: '#22c55e',
+    visit: '#a855f7', meeting: '#f97316',
+    email: '#64748b', note: '#94a3b8',
+  }
+
+  const formatFecha = (f: string) => {
+    const d = new Date(f)
+    const diff = Date.now() - d.getTime()
+    const mins = Math.floor(diff / 60000)
+    const hrs = Math.floor(diff / 3600000)
+    const dias = Math.floor(diff / 86400000)
+
+    const precisa = d.toLocaleDateString('es-PE', { weekday: 'short', day: 'numeric', month: 'short' }) +
+      ' · ' + d.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' })
+
+    if (mins < 1) return `${precisa} (ahora)`
+    if (hrs < 1) return `${precisa} (hace ${mins}m)`
+    if (hrs < 24) return `${precisa} (hace ${hrs}h)`
+    if (dias === 1) return `${precisa} (ayer)`
+    if (dias < 30) return `${precisa} (hace ${dias}d)`
+    return precisa
+  }
 
   const getTiempoRelativo = (fecha: string) => {
     if (!fecha) return ''
@@ -146,7 +183,7 @@ function CRMApp({ userId }: { userId: string }) {
 
   const handleIniciarCaptacion = (opp: Opportunity) => {
     if (opp.property_id) {
-      completarCaptacion({ opp, propiedadId: null, propiedadIdSeleccionada: '', captarModo: 'crear' })
+      completarCaptacion({ opp, propiedadId: opp.property_id, propiedadIdSeleccionada: '', captarModo: 'crear' })
     } else {
       setCaptacionOpp(opp)
       setCaptarModo('crear')
@@ -216,38 +253,122 @@ function CRMApp({ userId }: { userId: string }) {
   const leads = opps.filter(o => (o.pipeline_type || 'lead') === 'lead')
   const propietarios = opps.filter(o => o.pipeline_type === 'propietario')
 
-  const oppsWithActivities = getOppWithPendingActivities(opps, activities)
-  const oppsLeadsWithActs = getOppWithPendingActivities(leads, activities)
-  const oppsPropsWithActs = getOppWithPendingActivities(propietarios, activities)
+  // ── Fuente operacional única (activities) ──────────────────────────────────
 
-  const accionUrgenteLeads = oppsLeadsWithActs.filter(o => 
-    o.activitiesOverdue?.length > 0 || 
-    o.activitiesToday?.length > 0 ||
-    o.activitiesSinFecha?.length > 0
+  const oppMap = useMemo(() => Object.fromEntries(opps.map(o => [o.id, o])), [opps])
+
+  const ahora = new Date()
+  const inicioHoy = new Date(ahora); inicioHoy.setHours(0,0,0,0)
+  const finHoy = new Date(ahora); finHoy.setHours(23,59,59,999)
+  const hace7d = new Date(ahora.getTime() - 7 * 24 * 60 * 60 * 1000)
+
+  const pendingOnly = activities.filter(a => a.status === 'pending')
+  const pendingScheduled = pendingOnly
+    .filter(a => a.scheduled_at)
+    .sort((a, b) => new Date(a.scheduled_at!).getTime() - new Date(b.scheduled_at!).getTime())
+
+  const vencidasRecientes = pendingScheduled.filter(a =>
+    new Date(a.scheduled_at!) < inicioHoy &&
+    new Date(a.scheduled_at!) >= hace7d
   )
-  const accionUrgenteProps = oppsPropsWithActs.filter(o => 
-    o.activitiesOverdue?.length > 0 || 
-    o.activitiesToday?.length > 0 ||
-    o.activitiesSinFecha?.length > 0
+  const abandonadas = pendingScheduled.filter(a =>
+    new Date(a.scheduled_at!) < hace7d
   )
-  const accionProximaLeads = oppsLeadsWithActs.filter(o => 
-    o.activitiesUpcoming?.length > 0 && 
-    o.activitiesOverdue?.length === 0 &&
-    o.activitiesSinFecha?.length === 0
+  const hoyAct = pendingScheduled.filter(a =>
+    new Date(a.scheduled_at!) >= inicioHoy &&
+    new Date(a.scheduled_at!) <= finHoy
   )
-  const accionProximaProps = oppsPropsWithActs.filter(o => 
-    o.activitiesUpcoming?.length > 0 && 
-    o.activitiesOverdue?.length === 0 &&
-    o.activitiesSinFecha?.length === 0
+  const proximas = pendingScheduled.filter(a =>
+    new Date(a.scheduled_at!) > finHoy
+  ).slice(0, 5)
+
+  const sinProgramar = pendingOnly.filter(a => !a.scheduled_at)
+
+  const oppsSinActividad = opps.filter(o =>
+    (o.status || 'active') === 'active' &&
+    !pendingOnly.some(a =>
+      a.opportunity_id === o.id
+    )
   )
 
-  const accionHoyLeads = leads.filter(estaHoy)
-  const accionHoyProps = propietarios.filter(estaHoy)
-  const vencidosLeads = leads.filter(estaVencido)
-  const vencidosProps = propietarios.filter(estaVencido)
-  const sinAccion = opps.filter(o => !o.next_action_date)
+  console.log('[CRM ops]', {
+    totalActivities: activities.length,
+    pendingOnly: pendingOnly.length,
+    vencidasRecientes: vencidasRecientes.length,
+    abandonadas: abandonadas.length,
+    hoyAct: hoyAct.length,
+    proximas: proximas.length,
+    sinProgramar: sinProgramar.length,
+    oppsSinActividad: oppsSinActividad.length,
+  })
+
+  // ── Helper para activity → opp (con guardia contra huérfanas) ─────────────
+
+  const getOppForActivity = (a: any) => oppMap[a.opportunity_id] ?? null
 
   const ordenar = (arr: any[], activitiesData: any[]) => [...arr].sort((a, b) => getScore(b, activitiesData) - getScore(a, activitiesData))
+
+  // ── Completar + Reagendar ─────────────────────────────────────────────────
+
+  const handleCompletarActividad = async (activityId: string, oppId: string) => {
+    setLoadingActivity(activityId)
+    try {
+      const { error } = await supabase
+        .from('activities')
+        .update({ status: 'completed', completed_at: new Date().toISOString() })
+        .eq('id', activityId)
+      if (error) { alert(`Error al completar: ${error.message}`); return }
+
+      await cargarActivities()
+      if (selectedOpp?.id === oppId) cargarTimeline(oppId)
+    } finally {
+      setLoadingActivity(null)
+    }
+  }
+
+  const reagendarActividad = async (activityId: string, nuevaFecha: string) => {
+    setLoadingActivity(activityId)
+    try {
+      const { error } = await supabase
+        .from('activities')
+        .update({
+          scheduled_at: new Date(nuevaFecha).toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', activityId)
+      if (error) { alert(`Error al reagendar: ${error.message}`); return }
+
+      await cargarActivities()
+      setReagendarActId(null)
+    } finally {
+      setLoadingActivity(null)
+    }
+  }
+
+  const abrirReagendar = (activityId: string) => {
+    setReagendarActId(activityId)
+    setReagendarFecha(getFecha(1))
+  }
+
+  const handleQuickAdd = async () => {
+    if (!quickAddOpp || !tipoActividad) return
+    setLoadingActivity('quickAdd')
+    try {
+      await registrarActividad({
+        opp: quickAddOpp,
+        tipo: tipoActividad,
+        resultado: '',
+        nota: notaActividad,
+        fecha: fechaActividad,
+      })
+      setQuickAddOpp(null)
+      setTipoActividad('call')
+      setNotaActividad('')
+      setFechaActividad('')
+    } finally {
+      setLoadingActivity(null)
+    }
+  }
 
   // ── Acciones por stage ──────────────────────────────────────────────────────
 
@@ -267,6 +388,14 @@ function CRMApp({ userId }: { userId: string }) {
     )
 
     switch (opp.stage) {
+      case 'Contactado':
+        return (
+          <div style={rowStyle}>
+            <BtnWA /><BtnCall />
+            <button style={btnStyle('gray')} onClick={() => abrirProgramador(opp, 'Interesado')}>💬 Interesado</button>
+            <button style={btnStyle('red')} onClick={() => actualizarStage({ opp, nuevoStage: 'Perdido' })}>✕</button>
+          </div>
+        )
       case 'Interesado':
         return (
           <div style={rowStyle}>
@@ -354,8 +483,8 @@ function CRMApp({ userId }: { userId: string }) {
 
   // ── Card de oportunidad ─────────────────────────────────────────────────────
 
-  const OppCard = ({ opp }: { opp: any }) => {
-    const score = getScore(opp)
+  const OppCard = ({ opp, activities: acts }: { opp: any, activities: any[] }) => {
+    const score = getScore(opp, acts)
     const vencido = estaVencido(opp)
     const esProp = opp.pipeline_type === 'propietario'
 
@@ -421,11 +550,120 @@ function CRMApp({ userId }: { userId: string }) {
     )
   }
 
+  // ── Activity Card (inline, solo para VistaHoy) ─────────────────────────────
+
+  const ActivityCard = ({ activity }: { activity: any }) => {
+    const opp = getOppForActivity(activity)
+    if (!opp) return null
+
+    const contact = opp.contacts
+    const property = opp.properties
+    const color = ACTIVITY_COLORS[activity.type] || '#94a3b8'
+
+    return (
+      <div style={{
+        borderLeft: `3px solid ${color}`,
+        background: '#fff',
+        border: '1px solid #e2e8f0',
+        borderRadius: 8,
+        padding: '10px 12px',
+        marginBottom: 8,
+      }}>
+        <div style={{ fontSize: 13, fontWeight: 600 }}>
+          {ACTIVITY_LABELS[activity.type] || activity.type}
+          {activity.result && <span style={{ fontWeight: 400, color: '#64748b' }}> · {activity.result}</span>}
+        </div>
+        <div style={{ fontSize: 12, color: '#0f172a', marginTop: 2 }}>
+          👤 {contact?.nombre || 'Sin nombre'}
+        </div>
+        {property && (
+          <div style={{ fontSize: 11, color: '#64748b' }}>
+            🏠 {property.nombre}{property.precio ? ` · ${property.precio}` : ''}
+          </div>
+        )}
+        <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 2 }}>
+          {activity.scheduled_at ? formatFecha(activity.scheduled_at) : 'Sin programar'}
+        </div>
+        <div style={{ display: 'flex', gap: 4, marginTop: 6 }}>
+          <button
+            onClick={() => handleCompletarActividad(activity.id, activity.opportunity_id)}
+            disabled={loadingActivity === activity.id}
+            style={{ ...btnStyle('green'), fontSize: 11, padding: '3px 8px', opacity: loadingActivity === activity.id ? 0.5 : 1 }}
+          >✅ {loadingActivity === activity.id ? '...' : 'Completar'}</button>
+          {activity.scheduled_at && (
+            <button
+              onClick={() => abrirReagendar(activity.id)}
+              disabled={loadingActivity === activity.id}
+              style={{ ...btnStyle('gray'), fontSize: 11, padding: '3px 8px', opacity: loadingActivity === activity.id ? 0.5 : 1 }}
+            >📅 Reagendar</button>
+          )}
+          <button
+            onClick={() => abrirTimeline(opp)}
+            disabled={loadingActivity === activity.id}
+            style={{ ...btnStyle('gray'), fontSize: 11, padding: '3px 8px', opacity: loadingActivity === activity.id ? 0.5 : 1 }}
+          >📋</button>
+        </div>
+      </div>
+    )
+  }
+
+  // ── Sección colapsable ──────────────────────────────────────────────────────
+
+  const Seccion = ({ icon, label, count, children, color }: {
+    icon: string; label: string; count: number; children: React.ReactNode; color?: string
+  }) => {
+    if (count === 0) return null
+    return (
+      <div style={{ marginBottom: 16 }}>
+        <h3 style={{ ...secTitle, color: color || '#64748b', marginBottom: 8 }}>
+          {icon} {label} ({count})
+        </h3>
+        {children}
+      </div>
+    )
+  }
+
+  // ── Timeline Item (inline, para modal) ─────────────────────────────────────
+
+  const TimelineItem = ({ activity }: { activity: any }) => {
+    const color = ACTIVITY_COLORS[activity.type] || '#94a3b8'
+    const label = ACTIVITY_LABELS[activity.type] || activity.type
+    return (
+      <div style={{
+        borderLeft: `3px solid ${color}`,
+        background: activity.status === 'completed' ? '#fafafa' : '#fff',
+        border: '1px solid #e2e8f0',
+        borderRadius: 6,
+        padding: '8px 10px',
+        marginBottom: 6,
+      }}>
+        <div style={{ fontSize: 12, fontWeight: 600 }}>
+          {label}
+          {activity.result && <span style={{ fontWeight: 400, color: '#64748b' }}> · {activity.result}</span>}
+        </div>
+        {activity.note && (
+          <div style={{ fontSize: 11, color: '#64748b', marginTop: 1, fontStyle: 'italic' }}>
+            “{activity.note}”
+          </div>
+        )}
+        <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 2, display: 'flex', justifyContent: 'space-between' }}>
+          <span>{activity.scheduled_at ? formatFecha(activity.scheduled_at) : '—'}</span>
+          <span style={{
+            color: activity.status === 'completed' ? '#22c55e' : '#f97316',
+            fontWeight: 600,
+          }}>
+            {activity.status === 'completed' ? 'Completada' : 'Pendiente'}
+          </span>
+        </div>
+      </div>
+    )
+  }
+
   // ── Vista HOY ───────────────────────────────────────────────────────────────
 
   const VistaHoy = () => {
-    const totalUrgente = accionUrgenteLeads.length + accionUrgenteProps.length
-    const totalVencidos = accionUrgenteLeads.filter(o => o.activitiesOverdue?.length > 0).length + accionUrgenteProps.filter(o => o.activitiesOverdue?.length > 0).length
+    const totalPendientes = pendingOnly.length
+    const totalVencidas = vencidasRecientes.length + abandonadas.length
 
     return (
       <div>
@@ -435,8 +673,8 @@ function CRMApp({ userId }: { userId: string }) {
           gap: 8, marginBottom: 16
         }}>
           {[
-            { label: 'Acción hoy', val: totalUrgente, color: totalUrgente > 0 ? '#ef4444' : '#22c55e', icon: '🔥' },
-            { label: 'Vencidos', val: totalVencidos, color: totalVencidos > 0 ? '#f97316' : '#94a3b8', icon: '⚠️' },
+            { label: 'Pendientes', val: totalPendientes, color: totalPendientes > 0 ? '#ef4444' : '#22c55e', icon: '🔥' },
+            { label: 'Vencidas', val: totalVencidas, color: totalVencidas > 0 ? '#f97316' : '#94a3b8', icon: '⚠️' },
             { label: 'Propietarios', val: propietarios.length, color: '#8b5cf6', icon: '🏠' },
             { label: 'Compradores', val: leads.length, color: '#3b82f6', icon: '👥' },
           ].map(s => (
@@ -450,37 +688,62 @@ function CRMApp({ userId }: { userId: string }) {
           ))}
         </div>
 
-        {/* Compradores urgentes */}
-        {accionUrgenteLeads.length > 0 && (
-          <>
-            <h3 style={secTitle}>👥 Compradores — Requiere acción ({accionUrgenteLeads.length})</h3>
-            {ordenar(accionUrgenteLeads, activities).map(o => <OppCard key={o.id} opp={o} />)}
-          </>
-        )}
+        <Seccion icon="⚠️" label="Vencidas recientes" count={vencidasRecientes.length} color="#ef4444">
+          {vencidasRecientes.map(a => <ActivityCard key={a.id} activity={a} />)}
+        </Seccion>
 
-        {/* Propietarios urgentes */}
-        {accionUrgenteProps.length > 0 && (
-          <>
-            <h3 style={secTitle}>🏠 Propietarios — Requiere acción ({accionUrgenteProps.length})</h3>
-            {ordenar(accionUrgenteProps, activities).map(o => <OppCard key={o.id} opp={o} />)}
-          </>
-        )}
+        <Seccion icon="💀" label="Abandonadas" count={abandonadas.length} color="#94a3b8">
+          {abandonadas.map(a => <ActivityCard key={a.id} activity={a} />)}
+        </Seccion>
 
-        {/* Próximos */}
-        {(accionProximaLeads.length > 0 || accionProximaProps.length > 0) && (
-          <div style={{ marginTop: 16 }}>
-            <h3 style={secTitle}>📅 Próximos ({accionProximaLeads.length + accionProximaProps.length})</h3>
-            {ordenar([...accionProximaLeads, ...accionProximaProps], activities).map(o => <OppCard key={o.id} opp={o} />)}
-          </div>
-        )}
+        <Seccion icon="🔥" label="Hoy" count={hoyAct.length} color="#f97316">
+          {hoyAct.map(a => <ActivityCard key={a.id} activity={a} />)}
+        </Seccion>
 
-        {totalUrgente === 0 && (
+        <Seccion icon="🕐" label="Próximas" count={proximas.length} color="#3b82f6">
+          {proximas.map(a => <ActivityCard key={a.id} activity={a} />)}
+        </Seccion>
+
+        <Seccion icon="💤" label="Sin próxima acción" count={oppsSinActividad.length} color="#64748b">
+          {oppsSinActividad.map(opp => (
+            <div key={opp.id} style={{
+              background: '#fff', border: '1px solid #e2e8f0',
+              borderRadius: 8, padding: '10px 12px', marginBottom: 8,
+            }}>
+              <div style={{ fontSize: 13, fontWeight: 600 }}>{opp.contacts?.nombre || 'Sin nombre'}</div>
+              <div style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>
+                {STAGE_LABEL[opp.stage] || opp.stage}
+                {opp.pipeline_type === 'propietario' && ' 🏠'}
+              </div>
+              <div style={{ display: 'flex', gap: 4, marginTop: 6 }}>
+                {opp.contacts?.telefono && (
+                  <>
+                    <a href={`https://wa.me/51${opp.contacts.telefono}?text=${encodeURIComponent(getMensaje(opp, getTipoMensaje(opp)))}`} target="_blank">
+                      <button style={btnStyle('green')}>📱 WA</button>
+                    </a>
+                    <a href={`tel:+51${opp.contacts.telefono}`}>
+                      <button style={btnStyle('blue')}>📞</button>
+                    </a>
+                  </>
+                )}
+                <button
+                  onClick={() => {
+                    setQuickAddOpp(opp)
+                    setTipoActividad('call')
+                    setNotaActividad('')
+                    setFechaActividad('')
+                  }}
+                  style={btnStyle('purple')}
+                >➕ Agendar</button>
+              </div>
+            </div>
+          ))}
+        </Seccion>
+
+        {totalPendientes === 0 && oppsSinActividad.length === 0 && (
           <div style={{ textAlign: 'center', padding: '40px 0', color: '#94a3b8' }}>
             <div style={{ fontSize: 32 }}>✅</div>
-            <p style={{ marginTop: 8 }}>Sin acciones pendientes para hoy</p>
-            {(leads.length + propietarios.length) > 0 && (
-              <p style={{ fontSize: 13 }}>Tienes {leads.length + propietarios.length} contactos en seguimiento</p>
-            )}
+            <p style={{ marginTop: 8 }}>Todo al día — sin trabajo pendiente</p>
           </div>
         )}
       </div>
@@ -499,7 +762,7 @@ function CRMApp({ userId }: { userId: string }) {
           return (
             <div key={stage} style={{ marginBottom: 16 }}>
               <h3 style={secTitle}>{STAGE_LABEL[stage] || stage} ({grupo.length})</h3>
-              {ordenar(grupo, activities).map(o => <OppCard key={o.id} opp={o} />)}
+              {ordenar(grupo, activities).map(o => <OppCard key={o.id} opp={o} activities={activities} />)}
             </div>
           )
         })}
@@ -525,7 +788,7 @@ function CRMApp({ userId }: { userId: string }) {
           return (
             <div key={stage} style={{ marginBottom: 16 }}>
               <h3 style={secTitle}>{STAGE_LABEL[stage] || stage} ({grupo.length})</h3>
-              {ordenar(grupo, activities).map(o => <OppCard key={o.id} opp={o} />)}
+              {ordenar(grupo, activities).map(o => <OppCard key={o.id} opp={o} activities={activities} />)}
             </div>
           )
         })}
@@ -642,7 +905,7 @@ function CRMApp({ userId }: { userId: string }) {
         position: 'sticky', top: 52, zIndex: 99
       }}>
         {([
-          { key: 'hoy', label: '🔥 Hoy', badge: accionUrgenteLeads.length + accionUrgenteProps.length },
+          { key: 'hoy', label: '🔥 Hoy', badge: pendingOnly.length },
           { key: 'leads', label: '👥 Compradores', badge: leads.length },
           { key: 'propietarios', label: '🏠 Propietarios', badge: propietarios.length },
         ] as { key: Vista; label: string; badge: number }[]).map(tab => (
@@ -790,6 +1053,127 @@ function CRMApp({ userId }: { userId: string }) {
         </div>
       )}
 
+      {/* Reagendar bottom sheet */}
+      {reagendarActId && (
+        <div style={{
+          position: 'fixed', bottom: 0, left: 0, right: 0,
+          background: '#fff', borderTop: '2px solid #3b82f6',
+          padding: 16, zIndex: 200,
+          boxShadow: '0 -4px 20px rgba(0,0,0,0.15)'
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
+            <strong style={{ fontSize: 15 }}>📅 Reagendar actividad</strong>
+            <button onClick={() => setReagendarActId(null)} style={{ background: 'none', border: 'none', fontSize: 18, cursor: 'pointer' }}>✕</button>
+          </div>
+          <input
+            type="datetime-local"
+            value={reagendarFecha}
+            onChange={e => setReagendarFecha(e.target.value)}
+            step="300"
+            style={{ ...inputStyle, marginBottom: 8 }}
+          />
+          <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
+            {[1, 2, 7].map(d => (
+              <button key={d} onClick={() => setReagendarFecha(getFecha(d))} style={btnStyle('ghost')}>
+                +{d}d
+              </button>
+            ))}
+          </div>
+          <button
+            onClick={() => reagendarActividad(reagendarActId, reagendarFecha)}
+            disabled={loadingActivity === reagendarActId}
+            style={{ ...btnStyle('blue'), width: '100%', padding: '12px 0', fontSize: 15, opacity: loadingActivity === reagendarActId ? 0.5 : 1 }}
+          >
+            {loadingActivity === reagendarActId ? 'Guardando...' : 'Guardar'}
+          </button>
+        </div>
+      )}
+
+      {/* Timeline Modal */}
+      {timelineOpen && selectedOpp && (
+        <div style={{
+          position: 'fixed', bottom: 0, left: 0, right: 0,
+          background: '#fff', borderTop: '2px solid #0f172a',
+          padding: 16, zIndex: 200,
+          boxShadow: '0 -4px 20px rgba(0,0,0,0.15)',
+          maxHeight: '60vh', overflowY: 'auto'
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
+            <strong style={{ fontSize: 15 }}>📋 Historial — {selectedOpp.contacts?.nombre || 'Sin nombre'}</strong>
+            <button onClick={cerrarTimeline} style={{ background: 'none', border: 'none', fontSize: 18, cursor: 'pointer' }}>✕</button>
+          </div>
+          {timelineLoading ? (
+            <div style={{ textAlign: 'center', padding: 20, color: '#94a3b8' }}>Cargando...</div>
+          ) : timeline.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: 20, color: '#94a3b8' }}>Sin actividades registradas</div>
+          ) : (
+            <>
+              {timeline.filter(a => a.status === 'pending').length > 0 && (
+                <>
+                  <div style={{ fontSize: 11, fontWeight: 600, color: '#f97316', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>⏳ Pendientes</div>
+                  {timeline.filter(a => a.status === 'pending').map(a => <TimelineItem key={a.id} activity={a} />)}
+                </>
+              )}
+              {timeline.filter(a => a.status === 'completed').length > 0 && (
+                <>
+                  <div style={{ fontSize: 11, fontWeight: 600, color: '#22c55e', marginTop: 12, marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>✅ Completadas</div>
+                  {timeline.filter(a => a.status === 'completed').map(a => <TimelineItem key={a.id} activity={a} />)}
+                </>
+              )}
+            </>
+          )}
+        </div>
+      )}
+
+      {/* Quick Add bottom sheet */}
+      {quickAddOpp && (
+        <div style={{
+          position: 'fixed', bottom: 0, left: 0, right: 0,
+          background: '#fff', borderTop: '2px solid #8b5cf6',
+          padding: 16, zIndex: 200,
+          boxShadow: '0 -4px 20px rgba(0,0,0,0.15)'
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
+            <strong style={{ fontSize: 15 }}>➕ Agendar actividad — {quickAddOpp.contacts?.nombre}</strong>
+            <button onClick={() => setQuickAddOpp(null)} style={{ background: 'none', border: 'none', fontSize: 18, cursor: 'pointer' }}>✕</button>
+          </div>
+
+          <div style={{ display: 'flex', gap: 6, marginBottom: 10, flexWrap: 'wrap' }}>
+            {TIPOS_ACTIVIDAD.map(t => (
+              <button
+                key={t.value}
+                onClick={() => setTipoActividad(t.value)}
+                style={{ ...btnStyle(tipoActividad === t.value ? 'blue' : 'ghost'), padding: '6px 10px', fontSize: 12 }}
+              >{t.label}</button>
+            ))}
+          </div>
+
+          <input
+            type="datetime-local"
+            value={fechaActividad}
+            onChange={e => setFechaActividad(e.target.value)}
+            step="300"
+            style={{ ...inputStyle, marginBottom: 8 }}
+            placeholder="Programar (opcional)"
+          />
+
+          <input
+            placeholder="Nota (opcional)"
+            value={notaActividad}
+            onChange={e => setNotaActividad(e.target.value)}
+            style={{ ...inputStyle, marginBottom: 8 }}
+          />
+
+          <button
+            onClick={handleQuickAdd}
+            disabled={loadingActivity === 'quickAdd'}
+            style={{ ...btnStyle('purple'), width: '100%', padding: '12px 0', fontSize: 15, opacity: loadingActivity === 'quickAdd' ? 0.5 : 1 }}
+          >
+            {loadingActivity === 'quickAdd' ? 'Guardando...' : 'Agendar'}
+          </button>
+        </div>
+      )}
+
       {/* Modal Captación Propietario */}
       {mostrarModalCaptacion && captacionOpp && (
         <div style={{
@@ -852,11 +1236,11 @@ function CRMApp({ userId }: { userId: string }) {
                     nombre: propiedadNombre,
                     precio: parseFloat(propiedadPrecio) || 0,
                     distrito: propiedadDistrito,
-                    tipo: 'departamento',
+                    tipo: 'Departamento',
                     operacion: 'venta',
                     estado: 'disponible',
                     moneda: 'USD',
-                    user_id: userIdRef.current,
+                    user_id: userId,
                   }]).select().single()
                   
                   if (nuevaProp) {

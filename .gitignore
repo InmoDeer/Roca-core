@@ -46,3 +46,4 @@ next-env.d.ts
 # opencode agents
 .agents/
 skills-lock.json
+.opencode/node_modules/

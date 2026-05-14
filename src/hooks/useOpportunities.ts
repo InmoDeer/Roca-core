@@ -15,7 +15,7 @@ export const useOpportunities = (userId: string) => {
       .from('opportunities')
       .select(`
         id, stage, next_action_date, next_action_type,
-        visit_date, follow_up_count, pipeline_type, property_id, contact_id, status,
+        visit_date, follow_up_count, pipeline_type, property_id, contact_id, status, user_id,
         contacts ( nombre, telefono ),
         properties ( nombre, precio, distrito )
       `)
@@ -102,6 +102,16 @@ export const useOpportunities = (userId: string) => {
       user_id: userId,
     }]).select().single()
 
+    if (newOpp) {
+      await supabase.from('activities').insert([{
+        opportunity_id: newOpp.id,
+        type: 'call',
+        status: 'pending',
+        note: 'Primera acción',
+        user_id: userId,
+      }])
+    }
+
     await cargarOpps()
     return newOpp
   }
@@ -152,15 +162,20 @@ export const useOpportunities = (userId: string) => {
         type: actividadType,
         channel: channel,
         result: nuevoStage,
-        status: 'completed',
+        status: 'pending',
         note: nota || null,
-        completed_at: new Date().toISOString(),
+        scheduled_at: new Date().toISOString(),
         user_id: userId,
       }])
     }
 
+    const followUpCount = nuevoStage === opp.stage
+      ? (opp.follow_up_count || 0) + 1
+      : opp.follow_up_count
+
     const updateData: any = {
       stage: nuevoStage,
+      follow_up_count: followUpCount,
       next_action_date: esFinal ? null : (fechaProxima ? new Date(fechaProxima).toISOString() : null),
     }
 
@@ -180,7 +195,7 @@ export const useOpportunities = (userId: string) => {
   }) => {
     const { opp, propiedadId, propiedadIdSeleccionada, captarModo } = params
     
-    let propertyId = propiedadId
+    let propertyId = propiedadId || opp.property_id
     
     if (captarModo === 'vincular' && propiedadIdSeleccionada) {
       propertyId = propiedadIdSeleccionada
@@ -252,16 +267,29 @@ export const useOpportunities = (userId: string) => {
     })
   }
 
+  const completarActividad = async (activityId: string) => {
+    await supabase.from('activities').update({
+      status: 'completed',
+      completed_at: new Date().toISOString()
+    }).eq('id', activityId)
+    
+    cargarActivities()
+  }
+
+  const pendingActivities = activities.filter(a => a.status === 'pending')
+
   return {
     opps,
     properties,
     activities,
+    pendingActivities,
     loading,
     cargarOpps,
     cargarActivities,
     crearOpp,
     actualizarStage,
     completarCaptacion,
+    completarActividad,
     getOppWithPendingActivities,
   }
 }
