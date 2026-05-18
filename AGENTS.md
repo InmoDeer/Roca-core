@@ -34,12 +34,12 @@ CRM inmobiliario operacional. Sigue leads (compradores) y propietarios en captac
 | Archivo | Rol |
 |---|---|
 | `src/app/page.tsx` | Única página. `Home` → `AuthGate` → `CRMApp`. Contiene inline: `AccionesLead`, `AccionesPropietario`, `OppCard`, `ActivityCard`, `TimelineItem`, `Seccion`, `VistaHoy/Leads/Propietarios` |
-| `src/hooks/useOpportunities.ts` | Hook monolítico: carga opps, activities, properties; CRUD de oportunidades, stages, captación; completar actividad. ~295 líneas |
+| `src/hooks/useOpportunities.ts` | Hook monolítico: carga opps, activities, properties; CRUD de oportunidades, stages, captación. ~273 líneas |
 | `src/hooks/useTimeline.ts` | Hook de historial: timeline por opportunity, registro manual de actividad. ~92 líneas |
 | `src/lib/crm/types.ts` | Tipos `Contact`, `Property`, `Opportunity` |
 | `src/lib/crm/stages.ts` | `STAGES_LEAD` (6), `STAGES_PROPIETARIO` (5), `STAGE_LABEL` |
 | `src/lib/crm/scoring.ts` | Motor de scoring: `getScore()` (0-100+), `getCalor()` (color), `getLastActivity()`, `getOverdueActivities()`, `getDaysSinceLastActivity()` |
-| `src/lib/crm/dates.ts` | `getFecha()` (offset días), `estaVencido()`, `estaHoy()` |
+| `src/lib/crm/dates.ts` | `getFecha()` (offset días) |
 | `src/lib/crm/messages.ts` | Plantillas WhatsApp por stage/pipeline |
 | `src/lib/crm/styles.ts` | `COLORS`, `btnStyle()`, estilos base, helpers de layout |
 | `src/lib/supabase.ts` | Cliente Supabase singleton desde env vars |
@@ -54,7 +54,7 @@ contact_id: uuid → contacts.id
 property_id: uuid? → properties.id
 stage: string (ver stages.ts)
 pipeline_type: 'lead' | 'propietario'
-next_action_date: timestamp?
+next_action_date: timestamp? (shadow field — derivado desde activities, no leer directamente)
 visit_date: timestamp?
 follow_up_count: int
 status: string? ('active', 'paused', 'won', 'lost')
@@ -117,7 +117,8 @@ Contactado → Tasación → Seguimiento → Captado
 - **Contactado**: primer contacto
 - **Tasación**: se agendó tasación del inmueble
 - **Seguimiento**: post-tasación, negociación
-- **Captado**: aceptó | **No captado**: rechazó
+- **Captado**: aceptó. NO es terminal — el flujo post-captación (coordinación de visitas, documentos, ofertas, firma) está pendiente de modelar.
+- **No captado**: rechazó (terminal)
 
 ### Scoring
 - Score base según stage (20-50 pts)
@@ -127,7 +128,7 @@ Contactado → Tasación → Seguimiento → Captado
 - -15/-30 si inactividad >7d/>14d
 - +5 por cada follow_up
 - -100 si status no es active
-- +30/20 si next_action_date vencido/próximo 24h
+- +30/20 si next_action_date vencido/próximo 24h (leyendo shadow field — ver arquitectura)
 
 ## Arquitectura operacional
 
@@ -157,6 +158,23 @@ Cada sección itera `activities` (no opps). Cada actividad se renderiza con `Act
 - **📋 Timeline**: modal con historial completo de activities de la opportunity, separado pendientes/completadas.
 - **➕ Quick add**: crea actividad sin pedir stage/resultado. Solo tipo, fecha, nota.
 
+### Estados terminales
+Cuando una opp llega a `Cerrado`, `Perdido`, `Captado` o `No captado`:
+- Se completan automáticamente TODAS sus pending activities
+- Se inserta una activity con `status: completed`, `result: nuevoStage`
+- NO se crean actividades pendientes
+- La opp desaparece de VistaHoy y de los pipelines activos
+
+### Estados de modal separados
+Cada modal operacional tiene su propio objeto de estado para evitar contaminación:
+
+| Modal | Estado |
+|---|---|
+| Programador de stage | `programador: { opp, evento, fecha, nota } \| null` |
+| Actividad manual | `modalActividad: { opp, tipo, resultado, nota, fecha } \| null` |
+| Quick add | `quickAdd: { opp, tipo, nota, fecha } \| null` |
+| Reagendar | `reagendarActId + reagendarFecha` |
+
 ### Flujo de datos
 ```
 AuthGate → login → CRMApp(userId)
@@ -174,10 +192,11 @@ CRMApp → VistaHoy/Leads/Propietarios
 - **NO** cambiar stage/pipeline al completar una actividad — contextos separados
 - **NO** usar Tailwind o CSS modules — mantener inline styles
 - **NO** migrar a RSC — toda la app es client-side
+- **Edge case conocido:** `completarCaptacion` en el hook no completa pending activities previas como sí hace `actualizarStage` — está pendiente de corregir
 
 ## Estado de page.tsx
 
-~1340 líneas, toda la UI del CRM en un solo archivo. Componentes inline pendientes de extraer a `src/components/` cuando el núcleo esté estable:
+~1310 líneas, toda la UI del CRM en un solo archivo. Componentes inline pendientes de extraer a `src/components/` cuando el núcleo esté estable:
 
 | Componente | Aprox líneas | Uso |
 |---|---|---|

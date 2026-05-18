@@ -14,7 +14,7 @@ export const useOpportunities = (userId: string) => {
     const { data } = await supabase
       .from('opportunities')
       .select(`
-        id, stage, next_action_date, next_action_type,
+        id, stage, next_action_date,
         visit_date, follow_up_count, pipeline_type, property_id, contact_id, status, user_id,
         contacts ( nombre, telefono ),
         properties ( nombre, precio, distrito )
@@ -97,7 +97,6 @@ export const useOpportunities = (userId: string) => {
       property_id: pipeline === 'lead' ? (propertyId || null) : null,
       stage: stageInicial,
       pipeline_type: pipeline,
-      next_action_type: 'escribir',
       next_action_date: new Date().toISOString(),
       user_id: userId,
     }]).select().single()
@@ -126,8 +125,37 @@ export const useOpportunities = (userId: string) => {
     
     const esFinal = nuevoStage === 'Cerrado' || nuevoStage === 'Perdido' || nuevoStage === 'Captado' || nuevoStage === 'No captado'
 
+    if (esFinal) {
+      const now = new Date().toISOString()
+      await supabase
+        .from('activities')
+        .update({ status: 'completed', completed_at: now })
+        .eq('opportunity_id', opp.id)
+        .eq('status', 'pending')
+
+      await supabase.from('activities').insert([{
+        opportunity_id: opp.id,
+        type: 'meeting',
+        channel: 'none',
+        result: nuevoStage,
+        status: 'completed',
+        completed_at: now,
+        note: nota || null,
+        user_id: userId,
+      }])
+
+      await supabase.from('opportunities').update({
+        stage: nuevoStage,
+        next_action_date: null,
+      }).eq('id', opp.id)
+
+      await cargarOpps()
+      await cargarActivities()
+      return
+    }
+
     let fechaProxima = fecha
-    if (!fecha && !esFinal) {
+    if (!fecha) {
       const auto = new Date()
       const dias = nuevoStage === 'Interesado' ? 2 : 1
       auto.setDate(auto.getDate() + dias)
@@ -176,7 +204,7 @@ export const useOpportunities = (userId: string) => {
     const updateData: any = {
       stage: nuevoStage,
       follow_up_count: followUpCount,
-      next_action_date: esFinal ? null : (fechaProxima ? new Date(fechaProxima).toISOString() : null),
+      next_action_date: fechaProxima ? new Date(fechaProxima).toISOString() : null,
     }
 
     if (nuevoStage === 'Visita' && fecha) {
@@ -228,54 +256,6 @@ export const useOpportunities = (userId: string) => {
     await cargarProperties()
   }
 
-  const getOppWithPendingActivities = (oppsData: any[], activitiesData: any[]) => {
-    if (!activitiesData || activitiesData.length === 0) return oppsData.map(o => ({ ...o, hasPending: false }))
-    
-    const now = new Date()
-    const startOfToday = new Date(now)
-    startOfToday.setHours(0, 0, 0, 0)
-    const endOfToday = new Date(now)
-    endOfToday.setHours(23, 59, 59, 999)
-    
-    return oppsData.map(opp => {
-      // Todas las actividades pending (con o sin scheduled_at)
-      const allPending = activitiesData.filter(a => 
-        a.opportunity_id === opp.id && a.status === 'pending'
-      )
-      
-      // Las que tienen fecha programada
-      const withSchedule = allPending.filter(a => a.scheduled_at)
-      
-      const overdue = withSchedule.filter(a => new Date(a.scheduled_at) < startOfToday)
-      const today = withSchedule.filter(a => {
-        const s = new Date(a.scheduled_at)
-        return s >= startOfToday && s <= endOfToday
-      })
-      const upcoming = withSchedule.filter(a => new Date(a.scheduled_at) > endOfToday)
-      
-      // Las que no tienen fecha - son para hacer ahora
-      const sinFecha = allPending.filter(a => !a.scheduled_at)
-      
-      return {
-        ...opp,
-        activitiesOverdue: overdue,
-        activitiesToday: today,
-        activitiesUpcoming: upcoming,
-        activitiesSinFecha: sinFecha,
-        hasPending: allPending.length > 0
-      }
-    })
-  }
-
-  const completarActividad = async (activityId: string) => {
-    await supabase.from('activities').update({
-      status: 'completed',
-      completed_at: new Date().toISOString()
-    }).eq('id', activityId)
-    
-    cargarActivities()
-  }
-
   const pendingActivities = activities.filter(a => a.status === 'pending')
 
   return {
@@ -289,7 +269,5 @@ export const useOpportunities = (userId: string) => {
     crearOpp,
     actualizarStage,
     completarCaptacion,
-    completarActividad,
-    getOppWithPendingActivities,
   }
 }

@@ -4,7 +4,7 @@ import { useEffect, useState, useMemo } from 'react'
 import { supabase } from '../lib/supabase'
 import { STAGES_LEAD, STAGES_PROPIETARIO, STAGE_LABEL } from '../lib/crm/stages'
 import AuthGate from '../components/AuthGate'
-import { getFecha, estaHoy, estaVencido } from '../lib/crm/dates'
+import { getFecha } from '../lib/crm/dates'
 import { getMensaje, getTipoMensaje } from '../lib/crm/messages'
 import { getScore, getCalor } from '../lib/crm/scoring'
 import type { Opportunity } from '../lib/crm/types'
@@ -34,7 +34,7 @@ function CRMApp({ userId }: { userId: string }) {
   // Hooks
   const { 
     opps, properties, activities, pendingActivities, loading, 
-    cargarOpps, cargarActivities, crearOpp, actualizarStage, completarCaptacion, completarActividad, getOppWithPendingActivities 
+    cargarOpps, cargarActivities, crearOpp, actualizarStage, completarCaptacion 
   } = useOpportunities(userId)
 
   const { 
@@ -51,18 +51,14 @@ function CRMApp({ userId }: { userId: string }) {
   const [mostrarForm, setMostrarForm] = useState(false)
 
   // Programador de acción
-  const [oppActiva, setOppActiva] = useState<any>(null)
-  const [eventoActivo, setEventoActivo] = useState('')
-  const [fechaSeleccionada, setFechaSeleccionada] = useState('')
-  const [nota, setNota] = useState('')
+  const [programador, setProgramador] = useState<{
+    opp: any; evento: string; fecha: string; nota: string
+  } | null>(null)
 
   // Modal actividad manual
-  const [mostrarModalActividad, setMostrarModalActividad] = useState(false)
-  const [actividadOpp, setActividadOpp] = useState<any>(null)
-  const [tipoActividad, setTipoActividad] = useState('call')
-  const [resultadoActividad, setResultadoActividad] = useState('')
-  const [notaActividad, setNotaActividad] = useState('')
-  const [fechaActividad, setFechaActividad] = useState('')
+  const [modalActividad, setModalActividad] = useState<{
+    opp: any; tipo: string; resultado: string; nota: string; fecha: string
+  } | null>(null)
 
   // Modal captación propietario
   const [mostrarModalCaptacion, setMostrarModalCaptacion] = useState(false)
@@ -79,18 +75,11 @@ function CRMApp({ userId }: { userId: string }) {
   const [reagendarFecha, setReagendarFecha] = useState('')
 
   // Quick add
-  const [quickAddOpp, setQuickAddOpp] = useState<any>(null)
+  const [quickAdd, setQuickAdd] = useState<{
+    opp: any; tipo: string; nota: string; fecha: string
+  } | null>(null)
 
   // ── Helpers ───────────────────────────────────────────────────────────────────
-
-  const ICONO_TYPE: Record<string, string> = {
-    'call': '📞',
-    'whatsapp': '📱', 
-    'visit': '🏠',
-    'meeting': '🤝',
-    'email': '📧',
-    'note': '📝'
-  }
 
   const TIPOS_ACTIVIDAD = [
     { value: 'call', label: '📞 Llamada' },
@@ -211,41 +200,27 @@ function CRMApp({ userId }: { userId: string }) {
 
   // ── Actualizar stage (UI handler) ───────────────────────────────────────────
 
-  const handleActualizarStage = async (opp: Opportunity, nuevoStage: string, fecha?: string) => {
-    await actualizarStage({ opp, nuevoStage, fecha, nota })
-    setOppActiva(null)
-    setNota('')
-  }
-
   const abrirProgramador = (opp: Opportunity, evento: string) => {
-    setOppActiva(opp)
-    setEventoActivo(evento)
-    setNota('')
-    setFechaSeleccionada(getFecha(1))
+    setProgramador({ opp, evento, fecha: getFecha(1), nota: '' })
   }
 
   const guardarAccion = async () => {
-    if (!oppActiva || !fechaSeleccionada) return
-    await actualizarStage({ opp: oppActiva, nuevoStage: eventoActivo, fecha: fechaSeleccionada, nota })
+    if (!programador) return
+    await actualizarStage({ opp: programador.opp, nuevoStage: programador.evento, fecha: programador.fecha, nota: programador.nota })
   }
 
   const handleRegistrarActividad = async () => {
-    if (!actividadOpp || !tipoActividad || !resultadoActividad) return
+    if (!modalActividad) return
     
     await registrarActividad({
-      opp: actividadOpp,
-      tipo: tipoActividad,
-      resultado: resultadoActividad,
-      nota: notaActividad,
-      fecha: fechaActividad,
+      opp: modalActividad.opp,
+      tipo: modalActividad.tipo,
+      resultado: modalActividad.resultado,
+      nota: modalActividad.nota,
+      fecha: modalActividad.fecha,
     })
     
-    setMostrarModalActividad(false)
-    setActividadOpp(null)
-    setTipoActividad('call')
-    setResultadoActividad('')
-    setNotaActividad('')
-    setFechaActividad('')
+    setModalActividad(null)
   }
 
   // ── Filtros ─────────────────────────────────────────────────────────────────
@@ -308,6 +283,13 @@ function CRMApp({ userId }: { userId: string }) {
 
   const ordenar = (arr: any[], activitiesData: any[]) => [...arr].sort((a, b) => getScore(b, activitiesData) - getScore(a, activitiesData))
 
+  const deriveNextActionDate = (oppId: string, activitiesData: any[]): string | null => {
+    const next = activitiesData
+      .filter((a: any) => a.opportunity_id === oppId && a.status === 'pending' && a.scheduled_at)
+      .sort((a: any, b: any) => new Date(a.scheduled_at).getTime() - new Date(b.scheduled_at).getTime())[0]
+    return next?.scheduled_at || null
+  }
+
   // ── Completar + Reagendar ─────────────────────────────────────────────────
 
   const handleCompletarActividad = async (activityId: string, oppId: string) => {
@@ -351,20 +333,17 @@ function CRMApp({ userId }: { userId: string }) {
   }
 
   const handleQuickAdd = async () => {
-    if (!quickAddOpp || !tipoActividad) return
+    if (!quickAdd) return
     setLoadingActivity('quickAdd')
     try {
       await registrarActividad({
-        opp: quickAddOpp,
-        tipo: tipoActividad,
+        opp: quickAdd.opp,
+        tipo: quickAdd.tipo,
         resultado: '',
-        nota: notaActividad,
-        fecha: fechaActividad,
+        nota: quickAdd.nota,
+        fecha: quickAdd.fecha,
       })
-      setQuickAddOpp(null)
-      setTipoActividad('call')
-      setNotaActividad('')
-      setFechaActividad('')
+      setQuickAdd(null)
     } finally {
       setLoadingActivity(null)
     }
@@ -485,13 +464,19 @@ function CRMApp({ userId }: { userId: string }) {
 
   const OppCard = ({ opp, activities: acts }: { opp: any, activities: any[] }) => {
     const score = getScore(opp, acts)
-    const vencido = estaVencido(opp)
     const esProp = opp.pipeline_type === 'propietario'
+
+    const ahora = new Date()
+    const pendingOppActivities = acts.filter(a => a.opportunity_id === opp.id && a.status === 'pending')
+    const hasOverdue = pendingOppActivities.some(a => a.scheduled_at && new Date(a.scheduled_at) < ahora)
+    const nextActivity = pendingOppActivities
+      .filter(a => a.scheduled_at)
+      .sort((a, b) => new Date(a.scheduled_at).getTime() - new Date(b.scheduled_at).getTime())[0]
 
     return (
       <div style={{
-        background: vencido ? '#fff5f5' : '#fff',
-        border: `1px solid ${vencido ? '#fecaca' : '#e2e8f0'}`,
+        background: hasOverdue ? '#fff5f5' : '#fff',
+        border: `1px solid ${hasOverdue ? '#fecaca' : '#e2e8f0'}`,
         borderLeft: `3px solid ${getCalor(score)}`,
         borderRadius: 8,
         padding: '10px 12px',
@@ -512,10 +497,10 @@ function CRMApp({ userId }: { userId: string }) {
             )}
             <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 2 }}>
               {STAGE_LABEL[opp.stage] || opp.stage}
-              {opp.next_action_date && (
-                <span style={{ marginLeft: 8, color: vencido ? '#ef4444' : '#64748b' }}>
-                  {vencido ? '⚠️ ' : '🕐 '}
-                  {new Date(opp.next_action_date).toLocaleString('es-PE', { dateStyle: 'short', timeStyle: 'short' })}
+              {nextActivity && (
+                <span style={{ marginLeft: 8, color: hasOverdue ? '#ef4444' : '#64748b' }}>
+                  {hasOverdue ? '⚠️ ' : '🕐 '}
+                  {new Date(nextActivity.scheduled_at).toLocaleString('es-PE', { dateStyle: 'short', timeStyle: 'short' })}
                 </span>
               )}
             </div>
@@ -534,12 +519,13 @@ function CRMApp({ userId }: { userId: string }) {
         <div style={{ marginTop: 6, borderTop: '1px solid #f1f5f9', paddingTop: 6 }}>
           <button 
             onClick={() => {
-              setActividadOpp(opp)
-              setMostrarModalActividad(true)
-              setTipoActividad('call')
-              setResultadoActividad('')
-              setNotaActividad('')
-              setFechaActividad('')
+              setModalActividad({
+                opp,
+                tipo: 'call',
+                resultado: '',
+                nota: '',
+                fecha: '',
+              })
             }}
             style={{ background: 'none', border: 'none', color: '#3b82f6', fontSize: 12, cursor: 'pointer', padding: 0 }}
           >
@@ -728,10 +714,12 @@ function CRMApp({ userId }: { userId: string }) {
                 )}
                 <button
                   onClick={() => {
-                    setQuickAddOpp(opp)
-                    setTipoActividad('call')
-                    setNotaActividad('')
-                    setFechaActividad('')
+                    setQuickAdd({
+                      opp,
+                      tipo: 'call',
+                      nota: '',
+                      fecha: '',
+                    })
                   }}
                   style={btnStyle('purple')}
                 >➕ Agendar</button>
@@ -941,7 +929,7 @@ function CRMApp({ userId }: { userId: string }) {
       </div>
 
       {/* Programador de acción (bottom sheet) */}
-      {oppActiva && (
+      {programador && (
         <div style={{
           position: 'fixed', bottom: 0, left: 0, right: 0,
           background: '#fff', borderTop: '2px solid #0f172a',
@@ -950,28 +938,28 @@ function CRMApp({ userId }: { userId: string }) {
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
             <strong style={{ fontSize: 15 }}>
-              {eventoActivo} — {oppActiva.contacts?.nombre}
+              {programador.evento} — {programador.opp.contacts?.nombre}
             </strong>
-            <button onClick={() => setOppActiva(null)} style={{ background: 'none', border: 'none', fontSize: 18, cursor: 'pointer' }}>✕</button>
+            <button onClick={() => setProgramador(null)} style={{ background: 'none', border: 'none', fontSize: 18, cursor: 'pointer' }}>✕</button>
           </div>
           <input
             type="datetime-local"
-            value={fechaSeleccionada}
-            onChange={e => setFechaSeleccionada(e.target.value)}
+            value={programador.fecha}
+            onChange={e => setProgramador(p => p ? { ...p, fecha: e.target.value } : null)}
             step="300"
             style={{ ...inputStyle, marginBottom: 8 }}
           />
           <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
             {[1, 2, 7].map(d => (
-              <button key={d} onClick={() => setFechaSeleccionada(getFecha(d))} style={btnStyle('ghost')}>
+              <button key={d} onClick={() => setProgramador(p => p ? { ...p, fecha: getFecha(d) } : null)} style={btnStyle('ghost')}>
                 +{d}d
               </button>
             ))}
           </div>
           <input
             placeholder="Nota (opcional)"
-            value={nota}
-            onChange={e => setNota(e.target.value)}
+            value={programador.nota}
+            onChange={e => setProgramador(p => p ? { ...p, nota: e.target.value } : null)}
             style={{ ...inputStyle, marginBottom: 8 }}
           />
           <button onClick={guardarAccion} style={{ ...btnStyle('blue'), width: '100%', padding: '12px 0', fontSize: 15 }}>
@@ -981,7 +969,7 @@ function CRMApp({ userId }: { userId: string }) {
       )}
 
       {/* Modal Actividad Manual */}
-      {mostrarModalActividad && actividadOpp && (
+      {modalActividad && (
         <div style={{
           position: 'fixed', bottom: 0, left: 0, right: 0,
           background: '#fff', borderTop: '2px solid #3b82f6',
@@ -990,18 +978,18 @@ function CRMApp({ userId }: { userId: string }) {
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
             <strong style={{ fontSize: 15 }}>
-              Nueva Actividad — {actividadOpp.contacts?.nombre}
+              Nueva Actividad — {modalActividad.opp.contacts?.nombre}
             </strong>
-            <button onClick={() => setMostrarModalActividad(false)} style={{ background: 'none', border: 'none', fontSize: 18, cursor: 'pointer' }}>✕</button>
+            <button onClick={() => setModalActividad(null)} style={{ background: 'none', border: 'none', fontSize: 18, cursor: 'pointer' }}>✕</button>
           </div>
           
           <div style={{ display: 'flex', gap: 6, marginBottom: 10, flexWrap: 'wrap' }}>
             {TIPOS_ACTIVIDAD.map(t => (
               <button
                 key={t.value}
-                onClick={() => setTipoActividad(t.value)}
+                onClick={() => setModalActividad(m => m ? { ...m, tipo: t.value } : null)}
                 style={{
-                  ...btnStyle(tipoActividad === t.value ? 'blue' : 'ghost'),
+                  ...btnStyle(modalActividad.tipo === t.value ? 'blue' : 'ghost'),
                   padding: '6px 10px', fontSize: 12
                 }}
               >
@@ -1011,8 +999,8 @@ function CRMApp({ userId }: { userId: string }) {
           </div>
           
           <select
-            value={resultadoActividad}
-            onChange={e => setResultadoActividad(e.target.value)}
+            value={modalActividad.resultado}
+            onChange={e => setModalActividad(m => m ? { ...m, resultado: e.target.value } : null)}
             style={{ ...inputStyle, marginBottom: 8 }}
           >
             <option value="">Seleccionar resultado...</option>
@@ -1023,8 +1011,8 @@ function CRMApp({ userId }: { userId: string }) {
           
           <input
             type="datetime-local"
-            value={fechaActividad}
-            onChange={e => setFechaActividad(e.target.value)}
+            value={modalActividad.fecha}
+            onChange={e => setModalActividad(m => m ? { ...m, fecha: e.target.value } : null)}
             step="300"
             style={{ ...inputStyle, marginBottom: 8 }}
             placeholder="Programar para más tarde (opcional)"
@@ -1032,20 +1020,20 @@ function CRMApp({ userId }: { userId: string }) {
           
           <input
             placeholder="Nota adicional (opcional)"
-            value={notaActividad}
-            onChange={e => setNotaActividad(e.target.value)}
+            value={modalActividad.nota}
+            onChange={e => setModalActividad(m => m ? { ...m, nota: e.target.value } : null)}
             style={{ ...inputStyle, marginBottom: 8 }}
           />
           
           <button 
             onClick={handleRegistrarActividad}
-            disabled={!tipoActividad || !resultadoActividad}
+            disabled={!modalActividad.tipo || !modalActividad.resultado}
             style={{ 
               ...btnStyle('blue'), 
               width: '100%', 
               padding: '12px 0', 
               fontSize: 15,
-              opacity: (!tipoActividad || !resultadoActividad) ? 0.5 : 1
+              opacity: (!modalActividad.tipo || !modalActividad.resultado) ? 0.5 : 1
             }}
           >
             Registrar
@@ -1126,7 +1114,7 @@ function CRMApp({ userId }: { userId: string }) {
       )}
 
       {/* Quick Add bottom sheet */}
-      {quickAddOpp && (
+      {quickAdd && (
         <div style={{
           position: 'fixed', bottom: 0, left: 0, right: 0,
           background: '#fff', borderTop: '2px solid #8b5cf6',
@@ -1134,24 +1122,24 @@ function CRMApp({ userId }: { userId: string }) {
           boxShadow: '0 -4px 20px rgba(0,0,0,0.15)'
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
-            <strong style={{ fontSize: 15 }}>➕ Agendar actividad — {quickAddOpp.contacts?.nombre}</strong>
-            <button onClick={() => setQuickAddOpp(null)} style={{ background: 'none', border: 'none', fontSize: 18, cursor: 'pointer' }}>✕</button>
+            <strong style={{ fontSize: 15 }}>➕ Agendar actividad — {quickAdd.opp.contacts?.nombre}</strong>
+            <button onClick={() => setQuickAdd(null)} style={{ background: 'none', border: 'none', fontSize: 18, cursor: 'pointer' }}>✕</button>
           </div>
 
           <div style={{ display: 'flex', gap: 6, marginBottom: 10, flexWrap: 'wrap' }}>
             {TIPOS_ACTIVIDAD.map(t => (
               <button
                 key={t.value}
-                onClick={() => setTipoActividad(t.value)}
-                style={{ ...btnStyle(tipoActividad === t.value ? 'blue' : 'ghost'), padding: '6px 10px', fontSize: 12 }}
+                onClick={() => setQuickAdd(q => q ? { ...q, tipo: t.value } : null)}
+                style={{ ...btnStyle(quickAdd.tipo === t.value ? 'blue' : 'ghost'), padding: '6px 10px', fontSize: 12 }}
               >{t.label}</button>
             ))}
           </div>
 
           <input
             type="datetime-local"
-            value={fechaActividad}
-            onChange={e => setFechaActividad(e.target.value)}
+            value={quickAdd.fecha}
+            onChange={e => setQuickAdd(q => q ? { ...q, fecha: e.target.value } : null)}
             step="300"
             style={{ ...inputStyle, marginBottom: 8 }}
             placeholder="Programar (opcional)"
@@ -1159,8 +1147,8 @@ function CRMApp({ userId }: { userId: string }) {
 
           <input
             placeholder="Nota (opcional)"
-            value={notaActividad}
-            onChange={e => setNotaActividad(e.target.value)}
+            value={quickAdd.nota}
+            onChange={e => setQuickAdd(q => q ? { ...q, nota: e.target.value } : null)}
             style={{ ...inputStyle, marginBottom: 8 }}
           />
 
